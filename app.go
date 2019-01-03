@@ -8,13 +8,12 @@ import (
 )
 
 type App struct {
-	Srv    *http.Server
-	Router HttpRouter
-	DB     *gorm.DB
+	Srv *http.Server
+	DB  *gorm.DB
 }
 
 func (app *App) dropDB() {
-	app.DB.DropTableIfExists("users", "apartments")
+	app.DB.DropTableIfExists(DbModels...)
 }
 
 func (app *App) Serve() error {
@@ -44,9 +43,8 @@ func NewApp(port int) (*App, error) {
 	}
 
 	app := &App{
-		Srv:    srv,
-		Router: router,
-		DB:     db,
+		Srv: srv,
+		DB:  db,
 	}
 
 	return app, nil

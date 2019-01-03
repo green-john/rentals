@@ -8,31 +8,63 @@ import (
 	"net/http"
 )
 
-// Resource to be managed by the application. Methods map to
-// HTTP verbs to comply with the REST standard
-// POST -> New
-// GET -> Fetch
-// PATCH -> Update
-// DELETE -> Remove
+// Represents a high level rest resource.
+//
+// See `CreateRoutes`
 type Resource interface {
 	// Name of the resource. To be used in the URL
 	Name() string
 
 	// Create a new resource given the json data. Returns
 	// the created object or an error
-	New(jsonData []byte) ([]byte, error)
+	Create(jsonData []byte) ([]byte, error)
 
 	// Get resource for the requested ID
-	Fetch(id string) ([]byte, error)
+	Read(id string) ([]byte, error)
 
 	// Update the resource with the given jsonData.
 	// Returns the updated resource or an error
 	Update(id string, jsonData []byte) ([]byte, error)
 
 	// Deletes the resource from the DB
-	Remove(id string) error
+	Delete(id string) error
 }
 
+// A wrapper around our http router so that it is easier to test
+type HttpRouter interface {
+	// Adds the url with the given method to the Router
+	Add(url string, method string, fn func(http.ResponseWriter, *http.Request))
+
+	// Use the given middleware in the router
+	Use(middleware func(http.Handler) http.Handler)
+}
+
+type GorillaRouter struct {
+	Router *mux.Router
+}
+
+func (r *GorillaRouter) Add(url string, method string, fn func(http.ResponseWriter, *http.Request)) {
+	r.Router.HandleFunc(url, fn).Methods(method)
+}
+
+func (r *GorillaRouter) Use(middleware func(http.Handler) http.Handler) {
+	r.Router.Use(middleware)
+}
+
+func NewGorillaRouter() *GorillaRouter {
+	router := mux.NewRouter()
+	return &GorillaRouter{
+		Router: router,
+	}
+}
+
+// Creates all routes for the given resource.
+// HTTP verbs are mapped to CRUD operations, respectively.
+//
+// POST -> Create
+// GET -> Read
+// PATCH -> Update
+// DELETE -> Delete
 func CreateRoutes(resource Resource, router HttpRouter) {
 	getHandler := handleGet(resource)
 	postHandler := handlePost(resource)
@@ -51,7 +83,7 @@ func CreateRoutes(resource Resource, router HttpRouter) {
 func handleGet(resource Resource) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		result, err := resource.Fetch(vars["id"])
+		result, err := resource.Read(vars["id"])
 		if err != nil {
 			writeError(err, w)
 			return
@@ -73,7 +105,7 @@ func handlePost(resource Resource) func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		result, err := resource.New(body)
+		result, err := resource.Create(body)
 		if err != nil {
 			writeError(err, w)
 			return
@@ -113,7 +145,7 @@ func handlePatch(resource Resource) func(w http.ResponseWriter, r *http.Request)
 func handleDelete(resource Resource) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		err := resource.Remove(vars["id"])
+		err := resource.Delete(vars["id"])
 		if err != nil {
 			writeError(err, w)
 			return

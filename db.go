@@ -8,6 +8,11 @@ import (
 	"os"
 )
 
+var DbModels = []interface{}{
+	&User{},
+	&Apartment{},
+}
+
 // Creates a new connection to the DB and migrates
 // all the objects so that tables in the db are created
 func ConnectToDB() (*gorm.DB, error) {
@@ -29,7 +34,7 @@ func ConnectToDB() (*gorm.DB, error) {
 	log.Print("Connected")
 
 	// TODO do not hardcode this here
-	db.AutoMigrate(&User{})
+	db.AutoMigrate(DbModels...)
 
 	return db, nil
 }

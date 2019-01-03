@@ -26,7 +26,7 @@ type Apartment struct {
 	Name, Desc string
 
 	// Id of the realtor
-	UserID string
+	User User
 
 	// Floor size area
 	AreaSize float32

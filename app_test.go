@@ -1,5 +1,3 @@
-// +build integration
-
 package rentals
 
 import (
@@ -7,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"sync"
 	"testing"
@@ -22,7 +21,7 @@ func TestCreateUser(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		app.Serve()
+		log.Printf("[ERROR] %s", app.Serve())
 	}()
 
 	payload := createPayload(`{"username":"john", "password": "secret", "role": "client"}`)
