@@ -71,6 +71,10 @@ func TestCreateUserByAdmin(t *testing.T) {
 	})
 }
 
+func TestCreateApartmentByAdmin(t *testing.T) {
+
+}
+
 func loginWithUser(t *testing.T, serverUrl, username, pwd string) (string, error) {
 	body := fmt.Sprintf(`{"username": "%s", "password": "%s"}`, username, pwd)
 	response, err := makeRequest("POST", serverUrl+"/login", "", []byte(body))
