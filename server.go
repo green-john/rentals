@@ -14,7 +14,7 @@ type Server struct {
 
 func (s *Server) Setup() error {
 	// Add all routes for resources
-	resources := []Resource{&UserResource{s.db}}
+	resources := []Resource{&UserResource{s.db}, &ApartmentResource{s.db}}
 	for _, resource := range resources {
 		CreateRoutes(resource, s.router)
 	}

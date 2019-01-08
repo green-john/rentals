@@ -37,7 +37,6 @@ type dbAuthenticator struct {
 }
 
 func (a *dbAuthenticator) Login(username, password string) (string, error) {
-
 	var user User
 	a.Db.Where("username = ?", username).First(&user)
 

@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestCreateUserByAdmin(t *testing.T) {
+func TestCreateUser(t *testing.T) {
 	// Arrange
 	var wg sync.WaitGroup
 	const addr = "localhost:8083"
@@ -44,7 +44,8 @@ func TestCreateUserByAdmin(t *testing.T) {
 
 	t.Run("Create user with admin, success", func(t *testing.T) {
 		// Create and admin
-		ok(t, createAdmin("admin", "admin", app.server.db))
+		_, err := createUser("admin", "admin", "admin", app.server.db)
+		ok(t, err)
 		token, err := loginWithUser(t, serverUrl, "admin", "admin")
 		ok(t, err)
 
@@ -58,6 +59,7 @@ func TestCreateUserByAdmin(t *testing.T) {
 		ok(t, err)
 
 		var userResponse struct {
+			Id       uint   `json:"id"`
 			Username string `json:"username"`
 			Role     string `json:"role"`
 		}
@@ -68,10 +70,65 @@ func TestCreateUserByAdmin(t *testing.T) {
 			fmt.Sprintf("Expected name john, got %s", userResponse.Username))
 		assert(t, userResponse.Role == "client",
 			fmt.Sprintf("Expected role client, got %s", userResponse.Role))
+		assert(t, userResponse.Id != 0, "Id must be different than 0")
 	})
 }
 
 func TestCreateApartmentByAdmin(t *testing.T) {
+	var wg sync.WaitGroup
+	const addr = "localhost:8083"
+	app, err := NewApp(addr)
+	ok(t, err)
+	ok(t, app.Setup())
+
+	// Make sure we delete all things after we are done
+	defer app.dropDB()
+	serverUrl := fmt.Sprintf("http://%s", addr)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		log.Printf("[ERROR] %s", app.ServeHTTP())
+	}()
+
+	t.Run("Create apartment no auth, fail", func(t *testing.T) {
+		// Act
+		res, err := makeRequest("POST", serverUrl+"/apartments", "", []byte(""))
+		ok(t, err)
+
+		// Assert
+		assert(t, res.StatusCode == http.StatusUnauthorized,
+			fmt.Sprintf("Expected 401, got %d", res.StatusCode))
+	})
+
+	t.Run("Create apartment", func(t *testing.T) {
+		// Create realtor and admin
+		_, err := createUser("admin", "admin", "admin", app.server.db)
+		ok(t, err)
+		realtorId, err := createUser("realtor", "password", "realtor", app.server.db)
+		ok(t, err)
+		token, err := loginWithUser(t, serverUrl, "admin", "admin")
+		ok(t, err)
+		payload := newApartmentPayload(realtorId)
+
+		// Act
+		res, err := makeRequest("POST", serverUrl+"/apartments", token, payload)
+		ok(t, err)
+
+		// Assert
+		assert(t, res.StatusCode == http.StatusCreated, fmt.Sprintf("Expected 201 got %d", res.StatusCode))
+		rawContent, err := ioutil.ReadAll(res.Body)
+		ok(t, err)
+
+		var apartmentResponse Apartment
+
+		err = json.Unmarshal(rawContent, &apartmentResponse)
+
+		assert(t, apartmentResponse.ID >= 1, "Expected id greater than 0")
+		assert(t, apartmentResponse.Name == "apt1", "Got name different name")
+		assert(t, apartmentResponse.RealtorId == realtorId, "Got unexpected realtor")
+		assert(t, apartmentResponse.Available, "Expected apartment to be available")
+	})
 
 }
 
@@ -117,16 +174,39 @@ func makeRequest(method, url, authToken string, body []byte) (*http.Response, er
 	return http.DefaultClient.Do(req)
 }
 
-// Hacky way of quickly creating an admin
-func createAdmin(username, pwd string, db *gorm.DB) error {
+// Creates a user. Returns its id.
+func createUser(username, pwd, role string, db *gorm.DB) (uint, error) {
 	userResource := &UserResource{db}
 
-	userData := fmt.Sprintf(`{"username": "%s", "password": "%s", "role": "admin"}`,
-		username, pwd)
-	_, err := userResource.Create([]byte(userData))
+	userData := fmt.Sprintf(`{"username": "%s", "password": "%s", "role": "%s"}`,
+		username, pwd, role)
+	jsonData, err := userResource.Create([]byte(userData))
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	var userId struct {
+		Id uint `json:"id"`
+	}
+
+	err = json.Unmarshal(jsonData, &userId)
+	if err != nil {
+		return 0, err
+	}
+
+	return userId.Id, nil
+}
+
+func newApartmentPayload(realtorId uint) []byte {
+	return []byte(fmt.Sprintf(
+		`{
+"name":"apt1",
+"description": "nice",
+"floorAreaMeters": 50.0,
+"pricePerMonthUSD": 500.0,
+"roomCount": 4,
+"latitude": 41.761536,
+"longitude": 12.315237,
+"available": true,
+"realtorId": %d}`, realtorId))
 }

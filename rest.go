@@ -26,7 +26,7 @@ type Resource interface {
 	// Returns the updated resource or an error
 	Update(id string, jsonData []byte) ([]byte, error)
 
-	// Deletes the resource from the DB
+	// Deletes the resource from the Db
 	Delete(id string) error
 }
 

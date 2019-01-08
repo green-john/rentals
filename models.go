@@ -1,17 +1,15 @@
 package rentals
 
-import (
-	"github.com/jinzhu/gorm"
-)
+// TODO add createdAt
 
 type User struct {
-	// Add ID, createdAt, updatedAt, deletedAt
-	gorm.Model
+	// Primary key
+	ID uint `gorm:"primary_key",json:"id"`
 
 	// Username
 	Username string `json:"username"`
 
-	// Password hash not included in json responses
+	// Password hash. Not included in json responses
 	PasswordHash string
 
 	// Role
@@ -19,7 +17,8 @@ type User struct {
 }
 
 type UserSession struct {
-	gorm.Model
+	// Primary key
+	ID uint `gorm:"primary_key"`
 
 	// Generated token
 	Token string
@@ -29,27 +28,54 @@ type UserSession struct {
 	User   User
 }
 
+// Add UOM to attribute names. See:
+// https://stackoverflow.com/questions/445191/should-we-put-units-of-measurements-in-attribute-names
 type Apartment struct {
-	// Add ID, createdAt, updatedAt, deletedAt
-	gorm.Model
+	// Primary key
+	ID uint `gorm:"primary_key",json:"id"`
 
-	// Name and description
-	Name, Desc string
+	// Name of this property
+	Name string `json:"name"`
 
-	// Id of the realtor
-	User User
+	// Description
+	Desc string `json:"description"`
+
+	// Realtor associated with this apartment
+	Realtor   User `gorm:"foreignkey:RealtorId"`
+	RealtorId uint `json:"realtorId"`
 
 	// Floor size area
-	AreaSize float32
+	FloorAreaMeters float32 `json:"floorAreaMeters"`
 
 	// Monthly rent
-	PricePerMonth float32
+	PricePerMonthUsd float32 `json:"pricePerMonthUSD"`
 
 	// Number of rooms
-	RoomCount int
+	RoomCount int `json:"roomCount"`
 
 	// Geolocation
-	Lat, Long float32
+	Latitude  float32 `json:"latitude"`
+	Longitude float32 `json:"longitude"`
+
+	// Availability of the apartment
+	Available bool `json:"available"`
+}
+
+type NewApartmentSchema struct {
+	Name             string  `json:"name"`
+	Desc             string  `json:"description"`
+	FloorAreaMeters  float32 `json:"floorAreaMeters"`
+	PricePerMonthUsd float32 `json:"pricePerMonthUSD"`
+	RoomCount        int     `json:"roomCount"`
+	Latitude         float32 `json:"latitude"`
+	Longitude        float32 `json:"longitude"`
+	RealtorId        uint    `json:"realtorId"`
+	Available        bool    `json:"available"`
+}
+
+// Validates data for a new apartment.
+func (s *NewApartmentSchema) Validate() error {
+	return nil
 }
 
 var DbModels = []interface{}{

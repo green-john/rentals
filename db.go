@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-// Creates a new connection to the DB and migrates
+// Creates a new connection to the Db and migrates
 // all the objects so that tables in the db are created
 func ConnectToDB() (*gorm.DB, error) {
 	const dialect = "postgres"
