@@ -1,63 +1,64 @@
 package rentals
 
 import (
+	"errors"
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"github.com/gorilla/mux"
 	"net/http"
 	"time"
 )
 
 type App struct {
-	Srv *http.Server
-	DB  *gorm.DB
+	server *Server
+	addr   string
 }
 
+// Helper method to enable easier testing
 func (app *App) dropDB() {
-	app.DB.DropTableIfExists(DbModels...)
+	app.server.db.DropTableIfExists(DbModels...)
 }
 
-func (app *App) Serve() error {
-	return app.Srv.ListenAndServe()
+// Serves http requests. app.server must be initialized,
+// otherwise an error is thrown
+func (app *App) ServeHTTP() error {
+	if !app.server.initialized {
+		return errors.New("app must be initialized first")
+	}
+
+	srv := &http.Server{
+		Handler:      app.server.router,
+		Addr:         app.addr,
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+
+	return srv.ListenAndServe()
 }
 
-func (app *App) getServerURL() string {
-	return app.Srv.Addr
+func (app *App) Setup() error {
+	return app.server.Setup()
 }
 
-func NewApp(port int) (*App, error) {
+func NewApp(addr string) (*App, error) {
 	db, err := ConnectToDB()
 	if err != nil {
 		return nil, fmt.Errorf("[NewApp] error in ConnectToDB(): %v", err)
 	}
 
-	router, err := initRouter(db)
-	if err != nil {
-		return nil, fmt.Errorf("[NewApp] error in initRouter(): %v", err)
-	}
+	router := mux.NewRouter()
+	auth := NewDbAuthenticator(db)
 
-	srv := &http.Server{
-		Handler:      router.Router,
-		Addr:         fmt.Sprintf("localhost:%d", port), // TODO dont hardcode this value
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+	server := &Server{
+		db:          db,
+		router:      router,
+		authN:       auth,
+		initialized: false,
 	}
 
 	app := &App{
-		Srv: srv,
-		DB:  db,
+		server: server,
+		addr:   addr,
 	}
 
 	return app, nil
-}
-
-func initRouter(db *gorm.DB) (*GorillaRouter, error) {
-	mux := NewGorillaRouter()
-
-	resources := []Resource{&UserResource{db}}
-
-	for _, resource := range resources {
-		CreateRoutes(resource, mux)
-	}
-
-	return mux, nil
 }

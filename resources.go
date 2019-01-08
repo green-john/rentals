@@ -32,7 +32,10 @@ func (t *UserResource) Create(jsonData []byte) ([]byte, error) {
 			fmt.Sprintf("[UserResource.Create] error creating user. Unknown role %s", newUserSchema.Role))
 	}
 
-	pwdHash := fmt.Sprintf("hash[%s]", newUserSchema.Password)
+	pwdHash, err := EncryptPassword(newUserSchema.Password)
+	if err != nil {
+		return nil, fmt.Errorf("[UserResource.Create] error encrypting password %v", err)
+	}
 
 	user := User{
 		Username:     newUserSchema.Username,

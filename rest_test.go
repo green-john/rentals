@@ -1,103 +1,90 @@
 package rentals
 
 import (
+	"bytes"
 	"fmt"
-	"io"
+	"github.com/gorilla/mux"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-type MockHttpRouter struct {
-	routeMethods map[string][]string
+type PageResource struct {
+	requestsPerMethod map[string]int
 }
 
-func NewMockRouter() *MockHttpRouter {
-	rec := make(map[string][]string)
-	return &MockHttpRouter{routeMethods: rec}
+func NewPageResource() *PageResource {
+	reqCount := make(map[string]int)
+	reqCount["GET"] = 0
+	reqCount["POST"] = 0
+	reqCount["PATCH"] = 0
+	reqCount["DELETE"] = 0
+
+	return &PageResource{requestsPerMethod: reqCount}
 }
-
-func (r *MockHttpRouter) Add(url string, method string, fn func(http.ResponseWriter, *http.Request)) {
-	_, ok := r.routeMethods[url]
-	if !ok {
-		r.routeMethods[url] = make([]string, 0)
-	}
-
-	r.routeMethods[url] = append(r.routeMethods[url], method)
-}
-
-func (r *MockHttpRouter) Use(middleware func(http.Handler) http.Handler) {}
-
-func (r *MockHttpRouter) checkAdded(url string, method string) bool {
-	methods, ok := r.routeMethods[url]
-	if !ok {
-		return false
-	}
-
-	return contains(methods, method)
-}
-
-type PageResource struct{}
 
 func (PageResource) Name() string {
 	return "pages"
 }
 
-func (PageResource) Create(jsonData []byte) ([]byte, error) {
+func (p *PageResource) Create(jsonData []byte) ([]byte, error) {
+	p.requestsPerMethod["POST"] += 1
 	return jsonData, nil
 }
 
-func (PageResource) Read(id string) ([]byte, error) {
+func (p *PageResource) Read(id string) ([]byte, error) {
+	p.requestsPerMethod["GET"] += 1
 	return []byte(fmt.Sprintf("id:%s", id)), nil
 }
 
-func (PageResource) Update(id string, jsonData []byte) ([]byte, error) {
+func (p *PageResource) Update(id string, jsonData []byte) ([]byte, error) {
+	p.requestsPerMethod["PATCH"] += 1
 	return []byte(fmt.Sprintf("id:%s", id)), nil
 }
 
-func (PageResource) Delete(id string) error {
+func (p *PageResource) Delete(id string) error {
+	p.requestsPerMethod["DELETE"] += 1
 	return nil
 }
 
 func TestCreateRoutes(t *testing.T) {
 	// Arrange
-	router := NewMockRouter()
-	myResource := PageResource{}
+	router := mux.NewRouter()
+	myResource := NewPageResource()
 
 	// Act
 	CreateRoutes(myResource, router)
 
-	// Assert
-	assert(t, router.checkAdded("/pages", "POST"), "no POST /pages")
-	assert(t, router.checkAdded("/pages/{id:[0-9]+}", "GET"), "no GET /pages")
-	assert(t, router.checkAdded("/pages/{id:[0-9]+}", "PATCH"), "no PATCH /pages")
-	assert(t, router.checkAdded("/pages/{id:[0-9]+}", "DELETE"), "no DELETE /pages")
-}
-
-type verifyCall bool
-
-func (c *verifyCall) call(w http.ResponseWriter, r *http.Request) {
-	*c = true
-}
-
-func TestRouteAdded(t *testing.T) {
-	// Arrange
-	var called verifyCall = false
-	r := NewGorillaRouter()
-
-	// Act
-	r.Add("/one", "POST", called.call)
-	res := executeRequest(r, "POST", "/one", nil)
+	res := makeMockRequest(t, router, "/pages", "POST", "")
+	assert(t, res.Code == http.StatusCreated, fmt.Sprintf("Response not ok: %d", res.Code))
+	res = makeMockRequest(t, router, "/pages/0", "GET", "")
+	assert(t, res.Code == http.StatusOK, fmt.Sprintf("Response not ok: %d", res.Code))
+	res = makeMockRequest(t, router, "/pages/0", "PATCH", "")
+	assert(t, res.Code == http.StatusOK, fmt.Sprintf("Response not ok: %d", res.Code))
+	res = makeMockRequest(t, router, "/pages/0", "DELETE", "")
+	assert(t, res.Code == http.StatusNoContent, fmt.Sprintf("Response not ok: %d", res.Code))
 
 	// Assert
-	assert(t, res.Code == http.StatusOK, fmt.Sprintf("Expected 200 got %d", res.Code))
-	assert(t, bool(called), "Expected called to be true")
+	reqCount := myResource.requestsPerMethod["POST"]
+	assert(t, reqCount == 1, fmt.Sprintf("Expected 1 post got %d", reqCount))
+
+	reqCount = myResource.requestsPerMethod["GET"]
+	assert(t, reqCount == 1, fmt.Sprintf("Expected 1 post got %d", reqCount))
+
+	reqCount = myResource.requestsPerMethod["PATCH"]
+	assert(t, reqCount == 1, fmt.Sprintf("Expected 1 post got %d", reqCount))
+
+	reqCount = myResource.requestsPerMethod["DELETE"]
+	assert(t, reqCount == 1, fmt.Sprintf("Expected 1 post got %d", reqCount))
 }
 
-func executeRequest(router *GorillaRouter, method string, url string, body io.Reader) *httptest.ResponseRecorder {
-	req := httptest.NewRequest(method, url, body)
-	res := httptest.NewRecorder()
-	router.Router.ServeHTTP(res, req)
+func makeMockRequest(t *testing.T, router *mux.Router, url, method, body string) *httptest.ResponseRecorder {
+	byteBody := bytes.NewBuffer([]byte(body))
+	request, err := http.NewRequest(method, url, byteBody)
+	ok(t, err)
 
-	return res
+	recResponse := httptest.NewRecorder()
+	router.ServeHTTP(recResponse, request)
+
+	return recResponse
 }

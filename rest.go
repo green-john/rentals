@@ -30,34 +30,6 @@ type Resource interface {
 	Delete(id string) error
 }
 
-// A wrapper around our http router so that it is easier to test
-type HttpRouter interface {
-	// Adds the url with the given method to the Router
-	Add(url string, method string, fn func(http.ResponseWriter, *http.Request))
-
-	// Use the given middleware in the router
-	Use(middleware func(http.Handler) http.Handler)
-}
-
-type GorillaRouter struct {
-	Router *mux.Router
-}
-
-func (r *GorillaRouter) Add(url string, method string, fn func(http.ResponseWriter, *http.Request)) {
-	r.Router.HandleFunc(url, fn).Methods(method)
-}
-
-func (r *GorillaRouter) Use(middleware func(http.Handler) http.Handler) {
-	r.Router.Use(middleware)
-}
-
-func NewGorillaRouter() *GorillaRouter {
-	router := mux.NewRouter()
-	return &GorillaRouter{
-		Router: router,
-	}
-}
-
 // Creates all routes for the given resource.
 // HTTP verbs are mapped to CRUD operations, respectively.
 //
@@ -65,7 +37,7 @@ func NewGorillaRouter() *GorillaRouter {
 // GET -> Read
 // PATCH -> Update
 // DELETE -> Delete
-func CreateRoutes(resource Resource, router HttpRouter) {
+func CreateRoutes(resource Resource, router *mux.Router) {
 	getHandler := handleGet(resource)
 	postHandler := handlePost(resource)
 	patchHandler := handlePatch(resource)
@@ -74,10 +46,10 @@ func CreateRoutes(resource Resource, router HttpRouter) {
 	url := fmt.Sprintf("/%s", resource.Name())
 	urlWithId := fmt.Sprintf("%s/{id:[0-9]+}", url)
 
-	router.Add(url, "POST", postHandler)
-	router.Add(urlWithId, "GET", getHandler)
-	router.Add(urlWithId, "PATCH", patchHandler)
-	router.Add(urlWithId, "DELETE", deleteHandler)
+	router.HandleFunc(url, postHandler).Methods("POST")
+	router.HandleFunc(urlWithId, getHandler).Methods("GET")
+	router.HandleFunc(urlWithId, patchHandler).Methods("PATCH")
+	router.HandleFunc(urlWithId, deleteHandler).Methods("DELETE")
 }
 
 func handleGet(resource Resource) func(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +57,7 @@ func handleGet(resource Resource) func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		result, err := resource.Read(vars["id"])
 		if err != nil {
-			writeError(err, w)
+			badRequestError(err, w)
 			return
 		}
 
@@ -101,13 +73,13 @@ func handlePost(resource Resource) func(w http.ResponseWriter, r *http.Request) 
 		defer r.Body.Close()
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			writeError(err, w)
+			badRequestError(err, w)
 			return
 		}
 
 		result, err := resource.Create(body)
 		if err != nil {
-			writeError(err, w)
+			badRequestError(err, w)
 			return
 		}
 
@@ -125,13 +97,13 @@ func handlePatch(resource Resource) func(w http.ResponseWriter, r *http.Request)
 		defer r.Body.Close()
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			writeError(err, w)
+			badRequestError(err, w)
 			return
 		}
 
 		result, err := resource.Update(vars["id"], body)
 		if err != nil {
-			writeError(err, w)
+			badRequestError(err, w)
 			return
 		}
 
@@ -147,7 +119,7 @@ func handleDelete(resource Resource) func(w http.ResponseWriter, r *http.Request
 		vars := mux.Vars(r)
 		err := resource.Delete(vars["id"])
 		if err != nil {
-			writeError(err, w)
+			badRequestError(err, w)
 			return
 		}
 
@@ -155,8 +127,7 @@ func handleDelete(resource Resource) func(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func writeError(err error, w http.ResponseWriter) {
-	w.WriteHeader(400)
-	_, _ = w.Write([]byte(err.Error()))
+func badRequestError(err error, w http.ResponseWriter) {
+	ErrorResponse(w, http.StatusBadRequest, err.Error())
 	log.Printf("[ERROR] %s", err.Error())
 }

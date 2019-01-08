@@ -11,11 +11,22 @@ type User struct {
 	// Username
 	Username string `json:"username"`
 
-	// Password hash
-	PasswordHash string `json:"password_hash"`
+	// Password hash not included in json responses
+	PasswordHash string
 
 	// Role
 	Role string `json:"role"`
+}
+
+type UserSession struct {
+	gorm.Model
+
+	// Generated token
+	Token string
+
+	// User associated to this session
+	UserID uint
+	User   User
 }
 
 type Apartment struct {
@@ -39,4 +50,10 @@ type Apartment struct {
 
 	// Geolocation
 	Lat, Long float32
+}
+
+var DbModels = []interface{}{
+	&User{},
+	&UserSession{},
+	&Apartment{},
 }
