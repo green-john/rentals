@@ -150,6 +150,27 @@ func TestReadUser(t *testing.T) {
 		}
 	})
 
+	t.Run("Read one user admin, success", func(t *testing.T) {
+		token, err := loginWithUser(t, serverUrl, "admin", "admin")
+		tst.Ok(t, err)
+
+		// Act
+		res, err := tst.MakeRequest("GET", serverUrl+"/users/1", token, []byte(""))
+		tst.Ok(t, err)
+
+		// Assert
+		tst.Assert(t, res.StatusCode == http.StatusOK,
+			fmt.Sprintf("Expected 200, got %d", res.StatusCode))
+
+		var returnedUser rentals.User
+		decoder := json.NewDecoder(res.Body)
+		err = decoder.Decode(&returnedUser)
+		tst.Ok(t, err)
+
+		tst.Assert(t, returnedUser.ID == 1,
+			fmt.Sprintf("Expected id 1, got %d", returnedUser.ID))
+	})
+
 	t.Run("Read users admin, succeed", func(t *testing.T) {
 		token, err := loginWithUser(t, serverUrl, "admin", "admin")
 		tst.Ok(t, err)

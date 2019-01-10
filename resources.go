@@ -61,7 +61,10 @@ func (t *UserResource) All() ([]byte, error) {
 }
 
 func (t *UserResource) Read(id string) ([]byte, error) {
-	panic("implement me")
+	var user User
+	t.Db.First(&user, id)
+
+	return json.Marshal(user)
 }
 
 func (t *UserResource) Update(id string, jsonData []byte) ([]byte, error) {
@@ -81,7 +84,7 @@ func (r *ApartmentResource) Name() string {
 }
 
 func (r *ApartmentResource) Create(jsonData []byte) ([]byte, error) {
-	var newApartment NewApartmentSchema
+	var newApartment Apartment
 
 	err := json.Unmarshal(jsonData, &newApartment)
 	if err != nil {
@@ -98,22 +101,9 @@ func (r *ApartmentResource) Create(jsonData []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	apartment := Apartment{
-		Name:             newApartment.Name,
-		Desc:             newApartment.Desc,
-		RealtorId:        newApartment.RealtorId,
-		Realtor:          *realtor,
-		FloorAreaMeters:  newApartment.FloorAreaMeters,
-		PricePerMonthUsd: newApartment.PricePerMonthUsd,
-		RoomCount:        newApartment.RoomCount,
-		Latitude:         newApartment.Latitude,
-		Longitude:        newApartment.Longitude,
-		Available:        newApartment.Available,
-	}
+	r.Db.Create(&newApartment)
 
-	r.Db.Create(&apartment)
-
-	rawJson, err := json.Marshal(apartment)
+	rawJson, err := json.Marshal(newApartment)
 	if err != nil {
 		return nil, err
 	}
@@ -133,11 +123,17 @@ func (r *ApartmentResource) getUser(userId uint) *User {
 }
 
 func (r *ApartmentResource) Read(id string) ([]byte, error) {
-	panic("implement me")
+	var apartment Apartment
+	r.Db.First(&apartment, id)
+
+	return json.Marshal(apartment)
 }
 
 func (r *ApartmentResource) All() ([]byte, error) {
-	panic("implement me")
+	var apartments []Apartment
+	r.Db.Find(&apartments)
+
+	return json.Marshal(apartments)
 }
 
 func (r *ApartmentResource) Update(id string, jsonData []byte) ([]byte, error) {
