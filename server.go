@@ -33,15 +33,15 @@ func (s *Server) Setup() error {
 	// Perform database migrations
 	s.db.AutoMigrate(DbModels...)
 
-	// Initialize roles
-	s.initRoles()
+	// Initialize roles' permissions
+	s.setupAuthorization()
 
 	s.initialized = true
 
 	return nil
 }
 
-func (s *Server) initRoles() {
+func (s *Server) setupAuthorization() {
 	s.authZ.AddPermission("admin", "users", roles.Create, roles.Read, roles.Update, roles.Delete)
 	s.authZ.AddPermission("admin", "apartments", roles.Create, roles.Read, roles.Update, roles.Delete)
 	s.authZ.AddPermission("realtor", "apartments", roles.Create, roles.Read, roles.Update, roles.Delete)

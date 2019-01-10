@@ -7,8 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// Elements related to Authorization (AuthN). Also contains
-// adding these elements to HTML interfaces.
+// Elements related to authentication and authorization.
 
 // Error thrown when a login fails
 var LoginError = errors.New("incorrect username/password")

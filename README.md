@@ -40,7 +40,7 @@ the project as functional as possible.
 - ~~User creation.~~
 - ~~Authentication for user creation.~~
 - ~~Apartment creation.~~
-- Add authorization to user and apartment creation.
+- ~~Add authorization to user and apartment creation.~~
 - Add read/update/delete for users and tournaments.
 - Search/Filtering by floor area size.
 - ditto for Price.
