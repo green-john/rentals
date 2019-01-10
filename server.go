@@ -7,43 +7,43 @@ import (
 )
 
 type Server struct {
-	db          *gorm.DB
-	router      *mux.Router
-	authN       Authenticator
-	authZ       *roles.Authorizer
-	initialized bool
+	Db          *gorm.DB
+	Router      *mux.Router
+	AuthN       Authenticator
+	AuthZ       *roles.Authorizer
+	Initialized bool
 }
 
 func (s *Server) Setup() error {
 	// Add all routes for resources
 	resources := []Resource{
-		&UserResource{Db: s.db},
-		&ApartmentResource{Db: s.db},
+		&UserResource{Db: s.Db},
+		&ApartmentResource{Db: s.Db},
 	}
 	for _, resource := range resources {
-		CreateRoutes(resource, s.router)
+		CreateRoutes(resource, s.Router)
 	}
 
 	// Handlers that don't belong to resources
-	s.router.HandleFunc("/login", s.LoginHandler())
+	s.Router.HandleFunc("/login", s.LoginHandler())
 
-	// Add authN middleware
-	s.router.Use(s.AuthenticationMiddleware)
+	// Add AuthN middleware
+	s.Router.Use(s.AuthenticationMiddleware)
 
 	// Perform database migrations
-	s.db.AutoMigrate(DbModels...)
+	s.Db.AutoMigrate(DbModels...)
 
 	// Initialize roles' permissions
 	s.setupAuthorization()
 
-	s.initialized = true
+	s.Initialized = true
 
 	return nil
 }
 
 func (s *Server) setupAuthorization() {
-	s.authZ.AddPermission("admin", "users", roles.Create, roles.Read, roles.Update, roles.Delete)
-	s.authZ.AddPermission("admin", "apartments", roles.Create, roles.Read, roles.Update, roles.Delete)
-	s.authZ.AddPermission("realtor", "apartments", roles.Create, roles.Read, roles.Update, roles.Delete)
-	s.authZ.AddPermission("client", "apartments", roles.Read)
+	s.AuthZ.AddPermission("admin", "users", roles.Create, roles.Read, roles.Update, roles.Delete)
+	s.AuthZ.AddPermission("admin", "apartments", roles.Create, roles.Read, roles.Update, roles.Delete)
+	s.AuthZ.AddPermission("realtor", "apartments", roles.Create, roles.Read, roles.Update, roles.Delete)
+	s.AuthZ.AddPermission("client", "apartments", roles.Read)
 }

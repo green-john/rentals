@@ -17,12 +17,12 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&userData)
 		if err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, "Internal server error")
+			ErrorResponse(w, http.StatusInternalServerError, "Internal Server error")
 			log.Printf("[ERROR] %v", err)
 			return
 		}
 
-		token, err := s.authN.Login(userData.Username, userData.Password)
+		token, err := s.AuthN.Login(userData.Username, userData.Password)
 		if err != nil {
 			ErrorResponse(w, http.StatusUnauthorized, "Not allowed")
 			return
@@ -35,7 +35,7 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 
 		jsonRes, err := json.Marshal(returnToken)
 		if err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, "Internal server error")
+			ErrorResponse(w, http.StatusInternalServerError, "Internal Server error")
 			log.Printf("[ERROR] %v", err)
 			return
 		}

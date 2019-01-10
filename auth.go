@@ -54,7 +54,7 @@ func (a *dbAuthenticator) Login(username, password string) (string, error) {
 		return existingSession.Token, nil
 	}
 
-	// Otherwise, create a new token and session and save it to the db
+	// Otherwise, create a new token and session and save it to the Db
 	token := generateToken()
 	session := UserSession{
 		Token:  token,

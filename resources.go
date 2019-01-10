@@ -8,7 +8,7 @@ import (
 )
 
 type UserResource struct {
-	Db    *gorm.DB
+	Db *gorm.DB
 }
 
 func (t *UserResource) Name() string {
@@ -53,6 +53,13 @@ func (t *UserResource) Create(jsonData []byte) ([]byte, error) {
 	return rawJson, nil
 }
 
+func (t *UserResource) All() ([]byte, error) {
+	var users []User
+	t.Db.Find(&users)
+
+	return json.Marshal(users)
+}
+
 func (t *UserResource) Read(id string) ([]byte, error) {
 	panic("implement me")
 }
@@ -66,7 +73,7 @@ func (t *UserResource) Delete(id string) error {
 }
 
 type ApartmentResource struct {
-	Db    *gorm.DB
+	Db *gorm.DB
 }
 
 func (r *ApartmentResource) Name() string {
@@ -126,6 +133,10 @@ func (r *ApartmentResource) getUser(userId uint) *User {
 }
 
 func (r *ApartmentResource) Read(id string) ([]byte, error) {
+	panic("implement me")
+}
+
+func (r *ApartmentResource) All() ([]byte, error) {
 	panic("implement me")
 }
 

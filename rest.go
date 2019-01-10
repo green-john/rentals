@@ -22,6 +22,9 @@ type Resource interface {
 	// Get resource for the requested ID
 	Read(id string) ([]byte, error)
 
+	// Get all resources of this type
+	All() ([]byte, error)
+
 	// Update the resource with the given jsonData.
 	// Returns the updated resource or an error
 	Update(id string, jsonData []byte) ([]byte, error)
@@ -39,6 +42,7 @@ type Resource interface {
 // DELETE -> Delete
 func CreateRoutes(resource Resource, router *mux.Router) {
 	getHandler := handleGet(resource)
+	getAllHandler := handleGetAll(resource)
 	postHandler := handlePost(resource)
 	patchHandler := handlePatch(resource)
 	deleteHandler := handleDelete(resource)
@@ -47,6 +51,7 @@ func CreateRoutes(resource Resource, router *mux.Router) {
 	urlWithId := fmt.Sprintf("%s/{id:[0-9]+}", url)
 
 	router.HandleFunc(url, postHandler).Methods("POST")
+	router.HandleFunc(url, getAllHandler).Methods("GET")
 	router.HandleFunc(urlWithId, getHandler).Methods("GET")
 	router.HandleFunc(urlWithId, patchHandler).Methods("PATCH")
 	router.HandleFunc(urlWithId, deleteHandler).Methods("DELETE")
@@ -56,6 +61,21 @@ func handleGet(resource Resource) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		result, err := resource.Read(vars["id"])
+		if err != nil {
+			badRequestError(err, w)
+			return
+		}
+
+		_, err = w.Write([]byte(result))
+		if err != nil {
+			log.Printf("[ERROR] %s", err)
+		}
+	}
+}
+
+func handleGetAll(resource Resource) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		result, err := resource.All()
 		if err != nil {
 			badRequestError(err, w)
 			return

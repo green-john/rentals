@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"tournaments/tst"
 )
 
 type PageResource struct {
@@ -16,6 +17,7 @@ type PageResource struct {
 func NewPageResource() *PageResource {
 	reqCount := make(map[string]int)
 	reqCount["GET"] = 0
+	reqCount["GETALL"] = 0
 	reqCount["POST"] = 0
 	reqCount["PATCH"] = 0
 	reqCount["DELETE"] = 0
@@ -37,6 +39,11 @@ func (p *PageResource) Read(id string) ([]byte, error) {
 	return []byte(fmt.Sprintf("id:%s", id)), nil
 }
 
+func (p *PageResource) All() ([]byte, error) {
+	p.requestsPerMethod["GETALL"] += 1
+	return []byte("all"), nil
+}
+
 func (p *PageResource) Update(id string, jsonData []byte) ([]byte, error) {
 	p.requestsPerMethod["PATCH"] += 1
 	return []byte(fmt.Sprintf("id:%s", id)), nil
@@ -56,32 +63,37 @@ func TestCreateRoutes(t *testing.T) {
 	CreateRoutes(myResource, router)
 
 	res := makeMockRequest(t, router, "/pages", "POST", "")
-	assert(t, res.Code == http.StatusCreated, fmt.Sprintf("Response not ok: %d", res.Code))
+	tst.Assert(t, res.Code == http.StatusCreated, fmt.Sprintf("Response not ok: %d", res.Code))
+	res = makeMockRequest(t, router, "/pages", "GET", "")
+	tst.Assert(t, res.Code == http.StatusOK, fmt.Sprintf("Response not ok: %d", res.Code))
 	res = makeMockRequest(t, router, "/pages/0", "GET", "")
-	assert(t, res.Code == http.StatusOK, fmt.Sprintf("Response not ok: %d", res.Code))
+	tst.Assert(t, res.Code == http.StatusOK, fmt.Sprintf("Response not ok: %d", res.Code))
 	res = makeMockRequest(t, router, "/pages/0", "PATCH", "")
-	assert(t, res.Code == http.StatusOK, fmt.Sprintf("Response not ok: %d", res.Code))
+	tst.Assert(t, res.Code == http.StatusOK, fmt.Sprintf("Response not ok: %d", res.Code))
 	res = makeMockRequest(t, router, "/pages/0", "DELETE", "")
-	assert(t, res.Code == http.StatusNoContent, fmt.Sprintf("Response not ok: %d", res.Code))
+	tst.Assert(t, res.Code == http.StatusNoContent, fmt.Sprintf("Response not ok: %d", res.Code))
 
 	// Assert
 	reqCount := myResource.requestsPerMethod["POST"]
-	assert(t, reqCount == 1, fmt.Sprintf("Expected 1 post got %d", reqCount))
+	tst.Assert(t, reqCount == 1, fmt.Sprintf("Expected 1 post got %d", reqCount))
 
 	reqCount = myResource.requestsPerMethod["GET"]
-	assert(t, reqCount == 1, fmt.Sprintf("Expected 1 post got %d", reqCount))
+	tst.Assert(t, reqCount == 1, fmt.Sprintf("Expected 1 post got %d", reqCount))
+
+	reqCount = myResource.requestsPerMethod["GETALL"]
+	tst.Assert(t, reqCount == 1, fmt.Sprintf("Expected 1 post got %d", reqCount))
 
 	reqCount = myResource.requestsPerMethod["PATCH"]
-	assert(t, reqCount == 1, fmt.Sprintf("Expected 1 post got %d", reqCount))
+	tst.Assert(t, reqCount == 1, fmt.Sprintf("Expected 1 post got %d", reqCount))
 
 	reqCount = myResource.requestsPerMethod["DELETE"]
-	assert(t, reqCount == 1, fmt.Sprintf("Expected 1 post got %d", reqCount))
+	tst.Assert(t, reqCount == 1, fmt.Sprintf("Expected 1 post got %d", reqCount))
 }
 
 func makeMockRequest(t *testing.T, router *mux.Router, url, method, body string) *httptest.ResponseRecorder {
 	byteBody := bytes.NewBuffer([]byte(body))
 	request, err := http.NewRequest(method, url, byteBody)
-	ok(t, err)
+	tst.Ok(t, err)
 
 	recResponse := httptest.NewRecorder()
 	router.ServeHTTP(recResponse, request)

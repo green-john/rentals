@@ -10,25 +10,25 @@ import (
 )
 
 type App struct {
-	server *Server
-	addr   string
+	Server *Server
+	Addr   string
 }
 
 // Helper method to enable easier testing
-func (app *App) dropDB() {
-	app.server.db.DropTableIfExists(DbModels...)
+func (app *App) DropDB() {
+	app.Server.Db.DropTableIfExists(DbModels...)
 }
 
-// Serves http requests. app.server must be initialized,
+// Serves http requests. app.Server must be Initialized,
 // otherwise an error is thrown
 func (app *App) ServeHTTP() error {
-	if !app.server.initialized {
-		return errors.New("app must be initialized first")
+	if !app.Server.Initialized {
+		return errors.New("app must be Initialized first")
 	}
 
 	srv := &http.Server{
-		Handler:      app.server.router,
-		Addr:         app.addr,
+		Handler:      app.Server.Router,
+		Addr:         app.Addr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
@@ -37,7 +37,7 @@ func (app *App) ServeHTTP() error {
 }
 
 func (app *App) Setup() error {
-	return app.server.Setup()
+	return app.Server.Setup()
 }
 
 func NewApp(addr string) (*App, error) {
@@ -51,16 +51,16 @@ func NewApp(addr string) (*App, error) {
 	authZ := roles.NewAuthorizer()
 
 	server := &Server{
-		db:          db,
-		router:      router,
-		authN:       authN,
-		authZ:       authZ,
-		initialized: false,
+		Db:          db,
+		Router:      router,
+		AuthN:       authN,
+		AuthZ:       authZ,
+		Initialized: false,
 	}
 
 	app := &App{
-		server: server,
-		addr:   addr,
+		Server: server,
+		Addr:   addr,
 	}
 
 	return app, nil

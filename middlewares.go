@@ -21,7 +21,7 @@ func (s *Server) AuthenticationMiddleware(next http.Handler) http.Handler {
 		}
 
 		token := authHeader[0]
-		user := s.authN.Verify(token)
+		user := s.AuthN.Verify(token)
 
 		if user == nil {
 			ErrorResponse(w, http.StatusUnauthorized, "Not allowed")
@@ -35,7 +35,7 @@ func (s *Server) AuthenticationMiddleware(next http.Handler) http.Handler {
 		if requestedResource != "" {
 			op := getOp(r.Method)
 
-			if !s.authZ.Allowed(user.Role, requestedResource, op) {
+			if !s.AuthZ.Allowed(user.Role, requestedResource, op) {
 				ErrorResponse(w, http.StatusForbidden, "Not allowed")
 				return
 			}

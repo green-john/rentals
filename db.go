@@ -9,7 +9,7 @@ import (
 )
 
 // Creates a new connection to the Db and migrates
-// all the objects so that tables in the db are created
+// all the objects so that tables in the Db are created
 func ConnectToDB() (*gorm.DB, error) {
 	const dialect = "postgres"
 	const extras = "sslmode=disable"
@@ -27,7 +27,6 @@ func ConnectToDB() (*gorm.DB, error) {
 	}
 
 	log.Print("Connected")
-
 
 	return db, nil
 }

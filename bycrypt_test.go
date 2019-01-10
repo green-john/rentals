@@ -3,6 +3,7 @@ package rentals
 import (
 	"fmt"
 	"testing"
+	"tournaments/tst"
 )
 
 func TestEncryptPassword(t *testing.T) {
@@ -11,9 +12,9 @@ func TestEncryptPassword(t *testing.T) {
 
 	// Act
 	encrypted, err := EncryptPassword(clearPass)
-	ok(t, err)
+	tst.Ok(t, err)
 
 	// Assert
 	err = CheckPassword(encrypted, "password")
-	assert(t, err == nil, fmt.Sprintf("Unexpected error %v", err))
+	tst.Assert(t, err == nil, fmt.Sprintf("Unexpected error %v", err))
 }
