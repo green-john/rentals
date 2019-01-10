@@ -42,6 +42,26 @@ func TestCreateUser(t *testing.T) {
 			fmt.Sprintf("Expected 401, got %d", res.StatusCode))
 	})
 
+	t.Run("Create user with client, realtor, fail", func(t *testing.T) {
+		// Create client
+		for _, user := range []string{"client", "realtor"} {
+			// Create user
+			_, err := createUser(user, user, user, app.server.db)
+			ok(t, err)
+
+			token, err := loginWithUser(t, serverUrl, user, user)
+			ok(t, err)
+
+			// Act
+			res, err := makeRequest("POST", serverUrl+"/users", token, payload)
+			ok(t, err)
+
+			// Assert
+			assert(t, res.StatusCode == http.StatusForbidden,
+				fmt.Sprintf("Expected 403, got %d", res.StatusCode))
+		}
+	})
+
 	t.Run("Create user with admin, success", func(t *testing.T) {
 		// Create and admin
 		_, err := createUser("admin", "admin", "admin", app.server.db)
@@ -91,6 +111,13 @@ func TestCreateApartmentByAdmin(t *testing.T) {
 		log.Printf("[ERROR] %s", app.ServeHTTP())
 	}()
 
+	_, err = createUser("admin", "admin", "admin", app.server.db)
+	ok(t, err)
+	realtorId, err := createUser("realtor", "realtor", "realtor", app.server.db)
+	ok(t, err)
+	_, err = createUser("client", "client", "client", app.server.db)
+	ok(t, err)
+
 	t.Run("Create apartment no auth, fail", func(t *testing.T) {
 		// Act
 		res, err := makeRequest("POST", serverUrl+"/apartments", "", []byte(""))
@@ -101,13 +128,8 @@ func TestCreateApartmentByAdmin(t *testing.T) {
 			fmt.Sprintf("Expected 401, got %d", res.StatusCode))
 	})
 
-	t.Run("Create apartment", func(t *testing.T) {
-		// Create realtor and admin
-		_, err := createUser("admin", "admin", "admin", app.server.db)
-		ok(t, err)
-		realtorId, err := createUser("realtor", "password", "realtor", app.server.db)
-		ok(t, err)
-		token, err := loginWithUser(t, serverUrl, "admin", "admin")
+	t.Run("Create apartment with client, fail", func(t *testing.T) {
+		token, err := loginWithUser(t, serverUrl, "client", "client")
 		ok(t, err)
 		payload := newApartmentPayload(realtorId)
 
@@ -116,18 +138,34 @@ func TestCreateApartmentByAdmin(t *testing.T) {
 		ok(t, err)
 
 		// Assert
-		assert(t, res.StatusCode == http.StatusCreated, fmt.Sprintf("Expected 201 got %d", res.StatusCode))
-		rawContent, err := ioutil.ReadAll(res.Body)
-		ok(t, err)
+		assert(t, res.StatusCode == http.StatusForbidden,
+			fmt.Sprintf("Expected 403 got %d", res.StatusCode))
+	})
 
-		var apartmentResponse Apartment
+	t.Run("Create apartment realtor admin, success", func(t *testing.T) {
+		for _, user := range []string{"admin", "realtor"} {
+			token, err := loginWithUser(t, serverUrl, user, user)
+			ok(t, err)
+			payload := newApartmentPayload(realtorId)
 
-		err = json.Unmarshal(rawContent, &apartmentResponse)
+			// Act
+			res, err := makeRequest("POST", serverUrl+"/apartments", token, payload)
+			ok(t, err)
 
-		assert(t, apartmentResponse.ID >= 1, "Expected id greater than 0")
-		assert(t, apartmentResponse.Name == "apt1", "Got name different name")
-		assert(t, apartmentResponse.RealtorId == realtorId, "Got unexpected realtor")
-		assert(t, apartmentResponse.Available, "Expected apartment to be available")
+			// Assert
+			assert(t, res.StatusCode == http.StatusCreated, fmt.Sprintf("Expected 201 got %d", res.StatusCode))
+			rawContent, err := ioutil.ReadAll(res.Body)
+			ok(t, err)
+
+			var apartmentResponse Apartment
+
+			err = json.Unmarshal(rawContent, &apartmentResponse)
+
+			assert(t, apartmentResponse.ID >= 1, "Expected id greater than 0")
+			assert(t, apartmentResponse.Name == "apt1", "Got name different name")
+			assert(t, apartmentResponse.RealtorId == realtorId, "Got unexpected realtor")
+			assert(t, apartmentResponse.Available, "Expected apartment to be available")
+		}
 	})
 
 }

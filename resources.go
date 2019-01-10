@@ -8,7 +8,7 @@ import (
 )
 
 type UserResource struct {
-	Db *gorm.DB
+	Db    *gorm.DB
 }
 
 func (t *UserResource) Name() string {
@@ -66,7 +66,7 @@ func (t *UserResource) Delete(id string) error {
 }
 
 type ApartmentResource struct {
-	Db *gorm.DB
+	Db    *gorm.DB
 }
 
 func (r *ApartmentResource) Name() string {

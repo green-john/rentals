@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"time"
+	"tournaments/roles"
 )
 
 type App struct {
@@ -46,12 +47,14 @@ func NewApp(addr string) (*App, error) {
 	}
 
 	router := mux.NewRouter()
-	auth := NewDbAuthenticator(db)
+	authN := NewDbAuthenticator(db)
+	authZ := roles.NewAuthorizer()
 
 	server := &Server{
 		db:          db,
 		router:      router,
-		authN:       auth,
+		authN:       authN,
+		authZ:       authZ,
 		initialized: false,
 	}
 
