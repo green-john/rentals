@@ -11,7 +11,7 @@ type User struct {
 	Username string `json:"username"`
 
 	// Password hash. Not included in json responses
-	PasswordHash string
+	PasswordHash string `json:"-"`
 
 	// Role
 	Role string `json:"role"`
@@ -40,7 +40,7 @@ type Apartment struct {
 	Desc string `json:"description"`
 
 	// Realtor associated with this apartment
-	Realtor   User `gorm:"foreignkey:RealtorId"`
+	Realtor   User `gorm:"foreignkey:RealtorId",json:"-"`
 	RealtorId uint `json:"realtorId"`
 
 	// Floor size area
