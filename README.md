@@ -41,12 +41,11 @@ the project as functional as possible.
 - ~~Authentication for user creation.~~
 - ~~Apartment creation.~~
 - ~~Add authorization to user and apartment creation.~~
-- Add read/update/delete for users and tournaments.
+- ~~Add read/update/delete tournaments.~~
+- Add read/update/delete users.
 - Search/Filtering by floor area size.
 - ditto for Price.
 - ditto for Rooms.
 - Create client account
 - Write frontend.
 - Bonus: Do geocoding in the frontend.
-
-

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"strconv"
 )
 
 type UserResource struct {
@@ -75,6 +76,17 @@ func (t *UserResource) Delete(id string) error {
 	panic("implement me")
 }
 
+func (r *ApartmentResource) getUser(userId uint) *User {
+	var user User
+	r.Db.First(&user, userId)
+
+	if user.ID != userId {
+		return nil
+	}
+
+	return &user
+}
+
 type ApartmentResource struct {
 	Db *gorm.DB
 }
@@ -84,19 +96,7 @@ func (r *ApartmentResource) Name() string {
 }
 
 func (r *ApartmentResource) Create(jsonData []byte) ([]byte, error) {
-	var newApartment Apartment
-
-	err := json.Unmarshal(jsonData, &newApartment)
-	if err != nil {
-		return nil, fmt.Errorf("[ApartmentResource.Create] error calling json.Unmarshall(): %v", err)
-	}
-
-	realtor := r.getUser(newApartment.RealtorId)
-	if realtor == nil {
-		return nil, fmt.Errorf("realtor %d not found", newApartment.RealtorId)
-	}
-
-	err = newApartment.Validate()
+	newApartment, err := r.createApartment(jsonData)
 	if err != nil {
 		return nil, err
 	}
@@ -111,20 +111,11 @@ func (r *ApartmentResource) Create(jsonData []byte) ([]byte, error) {
 	return rawJson, nil
 }
 
-func (r *ApartmentResource) getUser(userId uint) *User {
-	var user User
-	r.Db.Where("id = ?", userId).First(&user)
-
-	if user.ID == 0 {
-		return nil
-	}
-
-	return &user
-}
-
 func (r *ApartmentResource) Read(id string) ([]byte, error) {
-	var apartment Apartment
-	r.Db.First(&apartment, id)
+	apartment, err := r.getApartment(id)
+	if err != nil {
+		return nil, err
+	}
 
 	return json.Marshal(apartment)
 }
@@ -137,9 +128,97 @@ func (r *ApartmentResource) All() ([]byte, error) {
 }
 
 func (r *ApartmentResource) Update(id string, jsonData []byte) ([]byte, error) {
-	panic("implement me")
+	apartment, err := r.getApartment(id)
+	if err != nil {
+		return nil, err
+	}
+
+	//cleanedJson, err := filterUpdateFields(jsonData)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	err = json.Unmarshal(jsonData, &apartment)
+	if err != nil {
+		return nil, err
+	}
+
+	// Save to DB
+	r.Db.Save(&apartment)
+
+	rawJson, err := json.Marshal(apartment)
+	if err != nil {
+		return nil, err
+	}
+
+	return rawJson, nil
 }
 
 func (r *ApartmentResource) Delete(id string) error {
-	panic("implement me")
+	apartment, err := r.getApartment(id)
+	if err != nil {
+		return err
+	}
+
+	r.Db.Delete(&apartment)
+	return nil
+}
+
+func (r *ApartmentResource) getApartment(id string) (*Apartment, error) {
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		return nil, err
+	}
+
+	var apartment Apartment
+	r.Db.First(&apartment, idInt)
+
+	if apartment.ID != uid(idInt) {
+		return nil, errors.New("apartment not found")
+	}
+
+	return &apartment, nil
+}
+
+func (r *ApartmentResource) createApartment(jsonData []byte) (*Apartment, error) {
+	var newApartment Apartment
+
+	err := json.Unmarshal(jsonData, &newApartment)
+	if err != nil {
+		return nil, fmt.Errorf("[createApartment] error calling json.Unmarshall(): %v", err)
+	}
+
+	realtor := r.getUser(newApartment.RealtorId)
+	if realtor == nil {
+		return nil, fmt.Errorf("realtor not found (id=%d)", newApartment.RealtorId)
+	}
+
+	err = newApartment.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	return &newApartment, nil
+}
+
+func filterUpdateFields(jsonData []byte) ([]byte, error) {
+	var whiteListedFields struct {
+		Name             string  `json:"name"`
+		Desc             string  `json:"description"`
+		RealtorId        uint    `json:"realtorId"`
+		FloorAreaMeters  float32 `json:"floorAreaMeters"`
+		PricePerMonthUsd float32 `json:"pricePerMonthUSD"`
+		RoomCount        int     `json:"roomCount"`
+		Latitude         float32 `json:"latitude"`
+		Longitude        float32 `json:"longitude"`
+		Available        bool    `json:"available"`
+	}
+
+	err := json.Unmarshal(jsonData, &whiteListedFields)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(whiteListedFields)
 }

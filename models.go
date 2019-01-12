@@ -28,9 +28,11 @@ type UserSession struct {
 	User   User
 }
 
+type uid uint
+
 type Apartment struct {
 	// Primary key
-	ID uint `gorm:"primary_key",json:"id"`
+	ID uid `gorm:"primary_key",json:"id"`
 
 	// Name of this property
 	Name string `json:"name"`
@@ -59,6 +61,10 @@ type Apartment struct {
 
 	// Availability of the apartment
 	Available bool `json:"available"`
+}
+
+func (uid) UnmarshalJSON([]byte) error {
+	return nil
 }
 
 // Validates data for a new apartment.
