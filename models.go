@@ -40,7 +40,7 @@ type Apartment struct {
 	Desc string `json:"description"`
 
 	// Realtor associated with this apartment
-	Realtor   User `gorm:"foreignkey:RealtorId",json:"-"`
+	Realtor   User `json:"-",gorm:"foreignkey:RealtorId"`
 	RealtorId uint `json:"realtorId"`
 
 	// Floor size area
