@@ -240,8 +240,8 @@ func TestReadAllApartmentsAndSearch(t *testing.T) {
 		err = decoder.Decode(&returnedApartments)
 		tst.Ok(t, err)
 
-		tst.Assert(t, len(returnedApartments) == 10,
-			fmt.Sprintf("Expected 10 apartments, got %d", len(returnedApartments)))
+		tst.Assert(t, len(returnedApartments) == 5,
+			fmt.Sprintf("Expected 5 apartments, got %d", len(returnedApartments)))
 	})
 }
 

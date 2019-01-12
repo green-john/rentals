@@ -78,7 +78,7 @@ func handleGet(resource Resource) func(w http.ResponseWriter, r *http.Request) {
 
 func handleGetAll(resource Resource) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		result, err := resource.Find("")
+		result, err := resource.Find(r.URL.RawQuery)
 		if err != nil {
 			badRequestError(err, w)
 			return
