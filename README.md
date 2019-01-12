@@ -42,10 +42,10 @@ the project as functional as possible.
 - ~~Apartment creation.~~
 - ~~Add authorization to user and apartment creation.~~
 - ~~Add read/update/delete tournaments.~~
-- Add read/update/delete users.
+- ~~Add read/update/delete users.~~
 - Search/Filtering by floor area size.
 - ditto for Price.
 - ditto for Rooms.
-- Create client account
+- Create client account endpoint.
 - Write frontend.
 - Bonus: Do geocoding in the frontend.

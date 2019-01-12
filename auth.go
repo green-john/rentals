@@ -58,7 +58,7 @@ func (a *dbAuthenticator) Login(username, password string) (string, error) {
 	token := generateToken()
 	session := UserSession{
 		Token:  token,
-		UserID: user.ID,
+		UserID: uint(user.ID),
 		User:   user,
 	}
 	a.Db.Create(&session)

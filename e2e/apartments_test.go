@@ -247,7 +247,6 @@ func create10Apartments(t *testing.T, realtorId uint, db *gorm.DB) {
 	}
 }
 
-// Creates a user. Returns its id.
 func createApartment(name, desc string, realtorId uint, db *gorm.DB) (uint, error) {
 	apartmentResource := &rentals.ApartmentResource{Db: db}
 

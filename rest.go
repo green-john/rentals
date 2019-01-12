@@ -148,6 +148,11 @@ func handleDelete(resource Resource) func(w http.ResponseWriter, r *http.Request
 }
 
 func badRequestError(err error, w http.ResponseWriter) {
-	ErrorResponse(w, http.StatusBadRequest, err.Error())
 	log.Printf("[ERROR] %s", err.Error())
+	switch v := err.(type) {
+	case NotFoundError:
+		ErrorResponse(w, http.StatusNotFound, v.Error())
+	default:
+		ErrorResponse(w, http.StatusBadRequest, v.Error())
+	}
 }
