@@ -1,8 +1,8 @@
 package rentals
 
-// TODO add createdAt
 type uid uint
 
+// TODO add createdAt
 type User struct {
 	// Primary key
 	ID uid `gorm:"primary_key",json:"id"`

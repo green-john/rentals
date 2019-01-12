@@ -81,7 +81,7 @@ func TestCRUDApartment(t *testing.T) {
 	t.Run("Create Update Delete apartment with client, fail", func(t *testing.T) {
 		token, err := loginWithUser(t, serverUrl, "client", "client")
 		tst.Ok(t, err)
-		newApartmentPayload := newApartmentPayload("apt1", "desc", realtorId)
+		newApartmentPayload := newApartmentPayload("apt1", "desc", 5, realtorId)
 
 		res, err := tst.MakeRequest("POST", serverUrl+"/apartments", token, newApartmentPayload)
 		tst.Ok(t, err)
@@ -109,7 +109,7 @@ func TestCRUDApartment(t *testing.T) {
 			tst.Ok(t, err)
 
 			// Create
-			payload := newApartmentPayload("apt1", "desc", realtorId)
+			payload := newApartmentPayload("apt1", "desc", 5, realtorId)
 			res, err := tst.MakeRequest("POST", serverUrl+"/apartments", token, payload)
 			tst.Ok(t, err)
 
@@ -174,7 +174,7 @@ func TestCRUDApartment(t *testing.T) {
 	})
 }
 
-func TestReadAllApartments(t *testing.T) {
+func TestReadAllApartmentsAndSearch(t *testing.T) {
 	var wg sync.WaitGroup
 	const addr = "localhost:8083"
 	app, err := rentals.NewApp(addr)
@@ -222,35 +222,63 @@ func TestReadAllApartments(t *testing.T) {
 				fmt.Sprintf("Expected 10 apartments, got %d", len(returnedApartments)))
 		}
 	})
+
+	t.Run("Search apartments by room count", func(t *testing.T) {
+		token, err := loginWithUser(t, serverUrl, "client", "client")
+		tst.Ok(t, err)
+
+		// Act
+		res, err := tst.MakeRequest("GET", serverUrl+"/apartments?roomCount=4", token, []byte(""))
+		tst.Ok(t, err)
+
+		// Assert
+		tst.Assert(t, res.StatusCode == http.StatusOK,
+			fmt.Sprintf("Expected 200, got %d", res.StatusCode))
+
+		var returnedApartments []apartmentResponse
+		decoder := json.NewDecoder(res.Body)
+		err = decoder.Decode(&returnedApartments)
+		tst.Ok(t, err)
+
+		tst.Assert(t, len(returnedApartments) == 10,
+			fmt.Sprintf("Expected 10 apartments, got %d", len(returnedApartments)))
+	})
 }
 
-func newApartmentPayload(name, desc string, realtorId uint) []byte {
+func newApartmentPayload(name, desc string, roomCount int, realtorId uint) []byte {
 	return []byte(fmt.Sprintf(
 		`{
 "name":"%s",
 "description": "%s",
 "floorAreaMeters": 50.0,
 "pricePerMonthUSD": 500.0,
-"roomCount": 4,
+"roomCount": %d,
 "latitude": 41.761536,
 "longitude": 12.315237,
 "available": true,
-"realtorId": %d}`, name, desc, realtorId))
+"realtorId": %d}`, name, desc, roomCount, realtorId))
 }
 
 func create10Apartments(t *testing.T, realtorId uint, db *gorm.DB) {
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 5; i++ {
 		name := fmt.Sprintf("apt%d", i)
 		desc := fmt.Sprintf("desc%d", i)
-		_, err := createApartment(name, desc, realtorId, db)
+		_, err := createApartment(name, desc, 2, realtorId, db)
+		tst.Ok(t, err)
+	}
+
+	for i := 0; i < 5; i++ {
+		name := fmt.Sprintf("apt%d", 5+i)
+		desc := fmt.Sprintf("desc%d", 5+i)
+		_, err := createApartment(name, desc, 4, realtorId, db)
 		tst.Ok(t, err)
 	}
 }
 
-func createApartment(name, desc string, realtorId uint, db *gorm.DB) (uint, error) {
+func createApartment(name, desc string, roomCount int, realtorId uint, db *gorm.DB) (uint, error) {
 	apartmentResource := &rentals.ApartmentResource{Db: db}
 
-	apartmentData := newApartmentPayload(name, desc, realtorId)
+	apartmentData := newApartmentPayload(name, desc, roomCount, realtorId)
 	jsonData, err := apartmentResource.Create([]byte(apartmentData))
 	if err != nil {
 		return 0, err

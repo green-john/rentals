@@ -39,7 +39,7 @@ func (p *PageResource) Read(id string) ([]byte, error) {
 	return []byte(fmt.Sprintf("id:%s", id)), nil
 }
 
-func (p *PageResource) All() ([]byte, error) {
+func (p *PageResource) Find(query string) ([]byte, error) {
 	p.requestsPerMethod["GETALL"] += 1
 	return []byte("all"), nil
 }

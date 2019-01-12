@@ -22,8 +22,11 @@ type Resource interface {
 	// Get resource for the requested ID
 	Read(id string) ([]byte, error)
 
-	// Get all resources of this type
-	All() ([]byte, error)
+	// Finds all resources of this type. query is
+	// a querystring used to filter resources of this type.
+	// In order to get all, use an empty query. Fields in query
+	// correspond to JSON field names
+	Find(query string) ([]byte, error)
 
 	// Update the resource with the given jsonData.
 	// Returns the updated resource or an error
@@ -75,7 +78,7 @@ func handleGet(resource Resource) func(w http.ResponseWriter, r *http.Request) {
 
 func handleGetAll(resource Resource) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		result, err := resource.All()
+		result, err := resource.Find("")
 		if err != nil {
 			badRequestError(err, w)
 			return

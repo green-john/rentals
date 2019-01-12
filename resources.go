@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"net/url"
 	"strconv"
 )
 
@@ -60,7 +61,7 @@ func (ur *UserResource) Create(jsonData []byte) ([]byte, error) {
 	return rawJson, nil
 }
 
-func (ur *UserResource) All() ([]byte, error) {
+func (ur *UserResource) Find(query string) ([]byte, error) {
 	var users []User
 	ur.Db.Find(&users)
 
@@ -134,10 +135,32 @@ func (ar *ApartmentResource) Read(id string) ([]byte, error) {
 	return json.Marshal(apartment)
 }
 
-func (ar *ApartmentResource) All() ([]byte, error) {
-	var apartments []Apartment
-	ar.Db.Find(&apartments)
+func (ar *ApartmentResource) Find(query string) ([]byte, error) {
+	values, err := url.ParseQuery(query)
+	if err != nil {
+		return nil, err
+	}
 
+	filters := map[string]string{
+		"floor_area_meters":   getJsonTag(Apartment{}, "FloorAreaMeters"),
+		"price_per_month_usd": getJsonTag(Apartment{}, "PricePerMonthUsd"),
+		"room_count":          getJsonTag(Apartment{}, "RoomCount"),
+	}
+
+	tx := ar.Db.New()
+	tx.Debug()
+	for dbField, jsonTag := range filters {
+		if v, ok := values[jsonTag]; ok {
+			if !ok || len(v) == 0 {
+				continue
+			}
+
+			tx = tx.Where(fmt.Sprintf("%s = ?", dbField), v[0])
+		}
+	}
+
+	var apartments []Apartment
+	tx.Find(&apartments)
 	return json.Marshal(apartments)
 }
 
