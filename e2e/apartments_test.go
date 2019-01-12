@@ -14,7 +14,7 @@ import (
 )
 
 type apartmentResponse struct {
-	ID               uint    `gorm:"primary_key",json:"id"`
+	ID               uint    `json:"id"`
 	Name             string  `json:"name"`
 	Desc             string  `json:"description"`
 	RealtorId        uint    `json:"realtorId"`

@@ -200,25 +200,3 @@ func (r *ApartmentResource) createApartment(jsonData []byte) (*Apartment, error)
 
 	return &newApartment, nil
 }
-
-func filterUpdateFields(jsonData []byte) ([]byte, error) {
-	var whiteListedFields struct {
-		Name             string  `json:"name"`
-		Desc             string  `json:"description"`
-		RealtorId        uint    `json:"realtorId"`
-		FloorAreaMeters  float32 `json:"floorAreaMeters"`
-		PricePerMonthUsd float32 `json:"pricePerMonthUSD"`
-		RoomCount        int     `json:"roomCount"`
-		Latitude         float32 `json:"latitude"`
-		Longitude        float32 `json:"longitude"`
-		Available        bool    `json:"available"`
-	}
-
-	err := json.Unmarshal(jsonData, &whiteListedFields)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return json.Marshal(whiteListedFields)
-}
