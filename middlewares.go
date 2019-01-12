@@ -6,6 +6,8 @@ import (
 	"tournaments/roles"
 )
 
+// Middleware used to authenticate and authorize users.
+// Uses the url to check which resource is being accessed
 func (s *Server) AuthenticationMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Skip if we are trying to login

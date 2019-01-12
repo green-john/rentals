@@ -68,6 +68,7 @@ func (uid) UnmarshalJSON([]byte) error {
 
 // Validates data for a new apartment.
 func (s *Apartment) Validate() error {
+	// TODO validate this shit
 	return nil
 }
 

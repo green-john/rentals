@@ -43,9 +43,7 @@ the project as functional as possible.
 - ~~Add authorization to user and apartment creation.~~
 - ~~Add read/update/delete tournaments.~~
 - ~~Add read/update/delete users.~~
-- Search/Filtering by floor area size.
-- ditto for Price.
-- ditto for Rooms.
-- Create client account endpoint.
+- Search/Filtering by floor area size, price, rooms.
 - Write frontend.
+- Create client account endpoint.
 - Bonus: Do geocoding in the frontend.

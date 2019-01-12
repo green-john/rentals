@@ -79,6 +79,8 @@ func (a *dbAuthenticator) findExistingUserSession(user User) *UserSession {
 	return &session
 }
 
+// Generates a random by drawing a number of bytes from
+// crypto.Rand
 func generateToken() string {
 	const tokenLength = 24
 	ret := make([]byte, tokenLength)

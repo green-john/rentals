@@ -25,7 +25,7 @@ func (s *Server) Setup() error {
 	}
 
 	// Handlers that don't belong to resources
-	s.Router.HandleFunc("/login", s.LoginHandler())
+	s.Router.HandleFunc("/login", s.LoginHandler()).Methods("POST")
 
 	// Add AuthN middleware
 	s.Router.Use(s.AuthenticationMiddleware)
