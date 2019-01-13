@@ -45,6 +45,7 @@ the project as functional as possible.
 - ~~Add read/update/delete users.~~
 - ~~Search by floor area size, price, rooms.~~
 - Write frontend.
+- Change available state.
 - Validate apartment info.
 - Create client account endpoint.
 - Bonus: Do geocoding in the frontend.

@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	createAdmin("admin", "admin")
+	//createAdmin("admin", "admin")
 	runServer()
 }
 
