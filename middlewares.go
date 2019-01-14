@@ -47,6 +47,13 @@ func (s *Server) AuthenticationMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func (s *Server) ContentTypeJsonMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func getOp(method string) roles.Permission {
 	meth2Perm := make(map[string]roles.Permission)
 	meth2Perm["POST"] = roles.Create

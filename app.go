@@ -34,6 +34,7 @@ func (app *App) ServeHTTP() error {
 	allMethods := handlers.AllowedMethods([]string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"})
 	allHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 
+	// Log all requests
 	r := handlers.LoggingHandler(os.Stderr, app.Server.Router)
 
 	srv := &http.Server{
