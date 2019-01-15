@@ -3,10 +3,9 @@
         <router-link class="logout-link" v-if="loggedIn" to="/logout">Log out</router-link>
         <div class="dashboard">
             <div class='sidebar'>
-                <!--TODO: This should only show for admins/realtors-->
                 <div class='heading'>
                     <h1>Our locations</h1>
-                    <button v-if="true" @click="showModal()" class="new-apartment">
+                    <button v-if="canCreateApartment()" @click="showModal()" class="new-apartment">
                         +
                     </button>
                 </div>
@@ -25,12 +24,11 @@
                     <div class="item" v-for="rental of rentals" :key="rental.id">
                         <a href="#" @click="panTo(rental.latitude, rental.longitude)">
                             {{ rental.name }}
-                        </a>
-                        <em v-if="!rental.available">    Occupied</em>
+                        </a><em v-if="!rental.available">(Occupied)</em>
                         <div class="detail">
-                            <b>Price:</b> <em> ${{ rental.pricePerMonthUSD }}   </em>
-                            <b>Area:</b> <em> {{ rental.floorAreaMeters }}m2    </em>
-                            <b>Rooms:</b> <em> {{ rental.roomCount }}     </em>
+                            <b>Price:</b> <em> ${{ rental.pricePerMonthUSD }} </em>
+                            <b>Area:</b> <em> {{ rental.floorAreaMeters }}m2 </em>
+                            <b>Rooms:</b> <em> {{ rental.roomCount }} </em>
                             <div class="desc" v-if="rental.description">{{ rental.description }}</div>
                         </div>
                     </div>
@@ -126,12 +124,18 @@
                     roomCount: null,
                 },
 
+                userData: {
+                    username: null,
+                    role: null,
+                },
+
                 newApartmentMessage: ""
             }
         },
 
         created() {
             this.loadApartments();
+            this.loadUserData();
         },
 
         computed: {
@@ -198,6 +202,18 @@
                 $rentals.loadAllApartments({}).then(res => {
                     this.rentals = res;
                 });
+            },
+
+            loadUserData() {
+                $auth.getUserInfo().then(res => {
+                    this.userData = res.data;
+                }).catch(err => {
+                    alert(err);
+                })
+            },
+
+            canCreateApartment() {
+                return this.userData.role === 'admin' || this.userData.role === 'realtor';
             },
 
             clearApartmentData() {

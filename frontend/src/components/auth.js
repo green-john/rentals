@@ -1,4 +1,4 @@
-import { $http } from "./http";
+import {$http} from "./http";
 
 export default {
     login(username, password) {
@@ -13,6 +13,16 @@ export default {
         return $http.post('/login', {
             "username": username,
             "password": password
+        });
+    },
+
+    getUserInfo() {
+        if (!this.isLoggedIn()) {
+            return Promise.reject({});
+        }
+
+        return $http.get('/profile', {
+            headers: {Authorization: this.getToken()}
         });
     },
 

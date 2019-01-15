@@ -40,6 +40,28 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 			return
 		}
 
-		w.Write(jsonRes)
+		_, _ = w.Write(jsonRes)
 	}
+}
+
+func (s *Server) profileHandler() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// This must exist otherwise the middleware would have rejected it
+		token := r.Header["Authorization"][0]
+		user := s.AuthN.Verify(token)
+
+		if user == nil {
+			ErrorResponse(w, http.StatusUnauthorized, "Not allowed")
+			return
+		}
+
+		jsonRes, err := json.Marshal(user)
+		if err != nil {
+			ErrorResponse(w, http.StatusInternalServerError, "Internal Server error")
+			log.Printf("[ERROR] %v", err)
+			return
+		}
+
+		_, _ = w.Write(jsonRes)
+	})
 }

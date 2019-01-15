@@ -44,10 +44,13 @@ the project as functional as possible.
 - ~~Add read/update/delete tournaments.~~
 - ~~Add read/update/delete users.~~
 - ~~Search by floor area size, price, rooms.~~
-- Write frontend.
+- ~~Write frontend.~~
+- ~~Create endpoint to return user info.~~
+- Frontend: Only show create to admins/realtors.
 - Change available state.
 - Validate apartment info.
-- Create endpoint to return user info.
 - Date added for apartments.
 - Create client account endpoint.
+- Make username unique in database.
+- Bonus: create users with admin.
 - Bonus: Do geocoding in the frontend.

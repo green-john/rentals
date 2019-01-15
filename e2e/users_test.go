@@ -178,103 +178,66 @@ func TestCRUDUsers(t *testing.T) {
 	})
 }
 
-//func TestReadUser(t *testing.T) {
-//	var wg sync.WaitGroup
-//	const addr = "localhost:8083"
-//	app, err := rentals.NewApp(addr)
-//	tst.Ok(t, err)
-//	tst.Ok(t, app.Setup())
-//
-//	// Make sure we delete all things after we are done
-//	defer app.DropDB()
-//	serverUrl := fmt.Sprintf("http://%s", addr)
-//
-//	wg.Add(1)
-//	go func() {
-//		defer wg.Done()
-//		log.Printf("[ERROR] %s", app.ServeHTTP())
-//	}()
-//
-//	_, err = createUser("admin", "admin", "admin", app.Server.Db)
-//	tst.Ok(t, err)
-//	_, err = createUser("realtor", "realtor", "realtor", app.Server.Db)
-//	tst.Ok(t, err)
-//	_, err = createUser("client", "client", "client", app.Server.Db)
-//	tst.Ok(t, err)
-//
-//	create10Users(t, app.Server.Db)
-//
-//	t.Run("Read users non auth user", func(t *testing.T) {
-//		for _, url := range []string{"/users", "/users/2"} {
-//			// Act
-//			res, err := tst.MakeRequest("GET", serverUrl+url, "", []byte(""))
-//			tst.Ok(t, err)
-//
-//			// Assert
-//			tst.Assert(t, res.StatusCode == http.StatusUnauthorized,
-//				fmt.Sprintf("Expected 401, got %d", res.StatusCode))
-//		}
-//	})
-//
-//	t.Run("Read users client, realtor, fail", func(t *testing.T) {
-//		for _, user := range []string{"client", "realtor"} {
-//			token, err := loginWithUser(t, serverUrl, user, user)
-//			tst.Ok(t, err)
-//
-//			for _, url := range []string{"/users", "/users/2"} {
-//				// Act
-//				res, err := tst.MakeRequest("GET", serverUrl+url, token, []byte(""))
-//				tst.Ok(t, err)
-//
-//				// Assert
-//				tst.Assert(t, res.StatusCode == http.StatusForbidden,
-//					fmt.Sprintf("Expected 403, got %d", res.StatusCode))
-//			}
-//		}
-//	})
-//
-//	t.Run("Read one user admin, success", func(t *testing.T) {
-//		token, err := loginWithUser(t, serverUrl, "admin", "admin")
-//		tst.Ok(t, err)
-//
-//		// Act
-//		res, err := tst.MakeRequest("GET", serverUrl+"/users/1", token, []byte(""))
-//		tst.Ok(t, err)
-//
-//		// Assert
-//		tst.Assert(t, res.StatusCode == http.StatusOK,
-//			fmt.Sprintf("Expected 200, got %d", res.StatusCode))
-//
-//		var returnedUser rentals.User
-//		decoder := json.NewDecoder(res.Body)
-//		err = decoder.Decode(&returnedUser)
-//		tst.Ok(t, err)
-//
-//		tst.Assert(t, returnedUser.ID == 1,
-//			fmt.Sprintf("Expected id 1, got %d", returnedUser.ID))
-//	})
-//
-//	t.Run("Read users admin, succeed", func(t *testing.T) {
-//		token, err := loginWithUser(t, serverUrl, "admin", "admin")
-//		tst.Ok(t, err)
-//
-//		// Act
-//		res, err := tst.MakeRequest("GET", serverUrl+"/users", token, []byte(""))
-//		tst.Ok(t, err)
-//
-//		// Assert
-//		tst.Assert(t, res.StatusCode == http.StatusOK,
-//			fmt.Sprintf("Expected 200, got %d", res.StatusCode))
-//
-//		var returnedUsers []*rentals.User
-//		decoder := json.NewDecoder(res.Body)
-//		err = decoder.Decode(&returnedUsers)
-//		tst.Ok(t, err)
-//
-//		tst.Assert(t, len(returnedUsers) == 13, fmt.Sprintf("Expected 13 users, got %d", len(returnedUsers)))
-//	})
-//
-//}
+func TestFetchOwnUserData(t *testing.T) {
+	var wg sync.WaitGroup
+	const addr = "localhost:8083"
+	app, err := rentals.NewApp(addr)
+	tst.Ok(t, err)
+	tst.Ok(t, app.Setup())
+
+	// Make sure we delete all things after we are done
+	defer app.DropDB()
+	serverUrl := fmt.Sprintf("http://%s", addr)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		log.Printf("[ERROR] %s", app.ServeHTTP())
+	}()
+
+	_, err = createUser("admin", "admin", "admin", app.Server.Db)
+	tst.Ok(t, err)
+	_, err = createUser("realtor", "realtor", "realtor", app.Server.Db)
+	tst.Ok(t, err)
+	_, err = createUser("client", "client", "client", app.Server.Db)
+	tst.Ok(t, err)
+
+	t.Run("Read profile not logged in", func(t *testing.T) {
+		// Act
+		res, err := tst.MakeRequest("GET", serverUrl+"/profile", "", []byte(""))
+		tst.Ok(t, err)
+
+		// Assert
+		tst.Assert(t, res.StatusCode == http.StatusUnauthorized,
+			fmt.Sprintf("Expected 401, got %d", res.StatusCode))
+	})
+
+	t.Run("Read own user data client, realtor, admin", func(t *testing.T) {
+		for _, user := range []string{"client", "realtor", "admin"} {
+			token, err := loginWithUser(t, serverUrl, user, user)
+			tst.Ok(t, err)
+
+			// Act
+			res, err := tst.MakeRequest("GET", serverUrl+"/profile", token, []byte(""))
+			tst.Ok(t, err)
+
+			// Assert
+			tst.Assert(t, res.StatusCode == http.StatusOK,
+				fmt.Sprintf("Expected 200, got %d", res.StatusCode))
+
+			var returnedUser rentals.User
+			decoder := json.NewDecoder(res.Body)
+			err = decoder.Decode(&returnedUser)
+			tst.Ok(t, err)
+
+			tst.Assert(t, returnedUser.Username == user,
+				fmt.Sprintf("Expected username %s, got %s", user, returnedUser.Username))
+
+			tst.Assert(t, returnedUser.Role == user,
+				fmt.Sprintf("Expected role %s, got %s", user, returnedUser.Role))
+		}
+	})
+}
 
 func create10Users(t *testing.T, db *gorm.DB) {
 	for i := 0; i < 10; i++ {
