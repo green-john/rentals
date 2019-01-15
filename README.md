@@ -47,5 +47,7 @@ the project as functional as possible.
 - Write frontend.
 - Change available state.
 - Validate apartment info.
+- Create endpoint to return user info.
+- Date added for apartments.
 - Create client account endpoint.
 - Bonus: Do geocoding in the frontend.
