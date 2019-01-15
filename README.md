@@ -46,8 +46,9 @@ the project as functional as possible.
 - ~~Search by floor area size, price, rooms.~~
 - ~~Write frontend.~~
 - ~~Create endpoint to return user info.~~
-- Frontend: Only show create to admins/realtors.
-- Change available state.
+- ~~Frontend: Only show create to admins/realtors.~~
+- ~~Change available state.~~
+- Fix frontend.
 - Validate apartment info.
 - Date added for apartments.
 - Create client account endpoint.

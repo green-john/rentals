@@ -30,7 +30,6 @@ export default {
     },
 
     newApartment(apartmentData) {
-        console.log(apartmentData);
         return $http.post('/apartments', apartmentData, {
             headers: {Authorization: $auth.getToken()}
         }).then(response => {
@@ -39,5 +38,13 @@ export default {
             alert(err);
             throw err;
         })
+    },
+
+    changeAvailability(apartmentId, newAvailability) {
+        return $http.patch('/apartments/' + apartmentId, {
+            'available': newAvailability
+        }, {
+            headers: {Authorization: $auth.getToken()}
+        });
     }
 }

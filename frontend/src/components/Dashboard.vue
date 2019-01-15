@@ -5,7 +5,7 @@
             <div class='sidebar'>
                 <div class='heading'>
                     <h1>Our locations</h1>
-                    <button v-if="canCreateApartment()" @click="showModal()" class="new-apartment">
+                    <button v-if="canCrudApartment()" @click="showModal()" class="new-apartment">
                         +
                     </button>
                 </div>
@@ -31,6 +31,9 @@
                             <b>Rooms:</b> <em> {{ rental.roomCount }} </em>
                             <div class="desc" v-if="rental.description">{{ rental.description }}</div>
                         </div>
+                        <button @click="toggleAvailability(rental)"
+                                v-if="canCrudApartment()">{{ rental.available ? "Rent out" : "Available"}}
+                        </button>
                     </div>
 
                 </div>
@@ -178,6 +181,11 @@
                 this.mapProps.zoom = 5;
             },
 
+            panOut() {
+                this.mapProps.center = {lat: 0, lng: 0};
+                this.mapProps.zoom = 2;
+            },
+
             showModal() {
                 this.$modal.show("new-apartment");
             },
@@ -195,6 +203,7 @@
             filterApartments() {
                 $rentals.loadAllApartments(this.filterData).then(res => {
                     this.rentals = res;
+                    this.panOut();
                 });
             },
 
@@ -212,8 +221,16 @@
                 })
             },
 
-            canCreateApartment() {
+            canCrudApartment() {
                 return this.userData.role === 'admin' || this.userData.role === 'realtor';
+            },
+
+            toggleAvailability(apartment) {
+                $rentals.changeAvailability(apartment.ID, !apartment.available).then(() => {
+                    this.loadApartments();
+                }).catch(err => {
+                    alert(err)
+                });
             },
 
             clearApartmentData() {
