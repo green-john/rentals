@@ -235,13 +235,56 @@ func TestFetchOwnUserData(t *testing.T) {
 			err = decoder.Decode(&returnedUser)
 			tst.Ok(t, err)
 
-			tst.Assert(t, returnedUser.Username == user,
-				fmt.Sprintf("Expected username %s, got %s", user, returnedUser.Username))
-
-			tst.Assert(t, returnedUser.Role == user,
-				fmt.Sprintf("Expected role %s, got %s", user, returnedUser.Role))
+			assertUser(t, &returnedUser, user, user)
 		}
 	})
+}
+
+func TestCreateClient(t *testing.T) {
+	var wg sync.WaitGroup
+	const addr = "localhost:8083"
+	app, err := rentals.NewApp(addr)
+	tst.Ok(t, err)
+	tst.Ok(t, app.Setup())
+
+	// Make sure we delete all things after we are done
+	defer app.DropDB()
+	serverUrl := fmt.Sprintf("http://%s", addr)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		log.Printf("[ERROR] %s", app.ServeHTTP())
+	}()
+
+	_, err = createUser("admin", "admin", "admin", app.Server.Db)
+	tst.Ok(t, err)
+
+	t.Run("Create client, not logged in, error", func(t *testing.T) {
+		// Act
+		payload := []byte(`{"username": "client1", "password": "client1"}`)
+		res, err := tst.MakeRequest("POST", serverUrl+"/newClient", "", payload)
+		tst.Ok(t, err)
+
+		// Assert
+		tst.Assert(t, res.StatusCode == http.StatusCreated,
+			fmt.Sprintf("Expected 201, got %d", res.StatusCode))
+
+		var returnedUser rentals.User
+		decoder := json.NewDecoder(res.Body)
+		err = decoder.Decode(&returnedUser)
+		tst.Ok(t, err)
+
+		assertUser(t, &returnedUser, "client1", "client")
+	})
+}
+
+func assertUser(t *testing.T, user *rentals.User, username, role string, ) {
+	tst.Assert(t, user.Username == username,
+		fmt.Sprintf("Expected username %s, got %s", username, user.Username))
+
+	tst.Assert(t, user.Role == role,
+		fmt.Sprintf("Expected role %s, got %s", role, user.Role))
 }
 
 // Creates a user. Returns its id.

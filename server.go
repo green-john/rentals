@@ -27,6 +27,7 @@ func (s *Server) Setup() error {
 	// Handlers that don't belong to resources
 	s.Router.HandleFunc("/login", s.LoginHandler()).Methods("POST")
 	s.Router.HandleFunc("/profile", s.profileHandler()).Methods("GET")
+	s.Router.HandleFunc("/newClient", s.newClientHandler()).Methods("POST")
 
 	// Add Authentication/Authorization middleware
 	s.Router.Use(s.AuthenticationMiddleware)

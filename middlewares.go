@@ -10,8 +10,8 @@ import (
 // Uses the url to check which resource is being accessed
 func (s *Server) AuthenticationMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Skip if we are trying to login
-		if r.URL.Path == "/login" {
+		// Skip if we are trying to login or creating a new client
+		if r.URL.Path == "/login" || r.URL.Path == "/newClient" {
 			next.ServeHTTP(w, r)
 			return
 		}

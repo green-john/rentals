@@ -65,3 +65,39 @@ func (s *Server) profileHandler() http.HandlerFunc {
 		_, _ = w.Write(jsonRes)
 	})
 }
+
+func (s *Server) newClientHandler() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var newClient struct{
+			Username string `json:"username"`
+			Password string `json:"password"`
+		}
+
+		decoder := json.NewDecoder(r.Body)
+		defer r.Body.Close()
+
+		err := decoder.Decode(&newClient)
+		if err != nil {
+			ErrorResponse(w, http.StatusInternalServerError, "Internal Server error")
+			log.Printf("[ERROR] %v", err)
+			return
+		}
+
+		user, err := createUser(newClient.Username, newClient.Password, "client", s.Db)
+		if err != nil {
+			ErrorResponse(w, http.StatusInternalServerError, "Internal Server error")
+			log.Printf("[ERROR] %v", err)
+			return
+		}
+
+		jsonRes, err := json.Marshal(user)
+		if err != nil {
+			ErrorResponse(w, http.StatusInternalServerError, "Internal Server error")
+			log.Printf("[ERROR] %v", err)
+			return
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		_, _ = w.Write(jsonRes)
+	})
+}
