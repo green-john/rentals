@@ -16,7 +16,6 @@ export default {
             finalUrl += `roomCount=${filters.roomCount}`;
         }
 
-        console.log("Getting from", finalUrl);
         return $http.get(
             finalUrl, {
                 headers: {Authorization: $auth.getToken()}

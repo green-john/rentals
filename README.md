@@ -49,9 +49,9 @@ the project as functional as possible.
 - ~~Frontend: Only show create to admins/realtors.~~
 - ~~Change available state.~~
 - ~~Make username unique in database.~~
-- Fix frontend.
-- Validate apartment info.
+- ~~Fix frontend.~~
 - Date added for apartments.
 - Create client account endpoint.
+- Validate apartment info.
 - Bonus: create users with admin.
 - Bonus: Do geocoding in the frontend.

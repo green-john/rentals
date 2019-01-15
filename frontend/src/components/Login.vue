@@ -1,5 +1,6 @@
 <template>
     <div class="wrapper">
+        <h2>Login</h2>
         <form @submit.prevent="login" class="login">
             <input placeholder="username" v-model="username" type="text">
             <input placeholder="password" v-model="password" type="password">
@@ -43,6 +44,7 @@
         display: grid;
         justify-content: center;
         margin-top: 3rem;
+        text-align: center;
     }
 
     .login {

@@ -4,7 +4,7 @@
         <div class="dashboard">
             <div class='sidebar'>
                 <div class='heading'>
-                    <h1>Our locations</h1>
+                    <h1>Apartments</h1>
                     <button v-if="canCrudApartment()" @click="showModal()" class="new-apartment">
                         +
                     </button>
@@ -35,7 +35,6 @@
                                 v-if="canCrudApartment()">{{ rental.available ? "Rent out" : "Available"}}
                         </button>
                     </div>
-
                 </div>
             </div>
 
@@ -76,7 +75,6 @@
                     <input type="submit" value="Create">
                     {{ newApartmentMessage }}
                 </form>
-
             </modal>
         </div>
     </div>
@@ -195,7 +193,6 @@
                     this.newApartmentMessage = `Apartment created with id ${res.ID}`;
                     this.loadApartments();
                 }).catch(err => {
-                    console.log(err);
                     this.newApartmentMessage = `Error: ${err}`;
                 });
             },
@@ -261,7 +258,7 @@
     .sidebar {
         border-right: 1px solid rgba(0, 0, 0, 0.25);
         overflow: hidden;
-        height: 95vh;
+        height: 100vh;
     }
 
 
@@ -323,14 +320,13 @@
 
     .logout-link {
         position: absolute;
-        bottom: 5px;
-        left: 5px;
+        top: 18px;
+        left: 170px;
     }
 
     .listings {
-        height: 100%;
+        height: 90%;
         overflow: auto;
-        padding-bottom: 60px;
     }
 
     .listings .item {
