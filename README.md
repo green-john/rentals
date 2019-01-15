@@ -48,10 +48,10 @@ the project as functional as possible.
 - ~~Create endpoint to return user info.~~
 - ~~Frontend: Only show create to admins/realtors.~~
 - ~~Change available state.~~
+- ~~Make username unique in database.~~
 - Fix frontend.
 - Validate apartment info.
 - Date added for apartments.
 - Create client account endpoint.
-- Make username unique in database.
 - Bonus: create users with admin.
 - Bonus: Do geocoding in the frontend.

@@ -2,13 +2,12 @@ package rentals
 
 type uid uint
 
-// TODO add createdAt
 type User struct {
 	// Primary key
 	ID uid `gorm:"primary_key",json:"id"`
 
 	// Username
-	Username string `json:"username"`
+	Username string `gorm:"unique",json:"username"`
 
 	// Password hash. Not included in json responses
 	PasswordHash string `json:"-"`
@@ -29,6 +28,7 @@ type UserSession struct {
 	User   User
 }
 
+// TODO add createdAt
 type Apartment struct {
 	// Primary key
 	ID uid `gorm:"primary_key",json:"id"`

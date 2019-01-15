@@ -35,7 +35,7 @@ func (ur *UserResource) Create(jsonData []byte) ([]byte, error) {
 		return nil, fmt.Errorf("[UserResource.Create] error calling json.Unmarshall(): %v", err)
 	}
 
-	if !contains([]string{"admin", "realtor", "client"}, newUserSchema.Role) {
+	if !validRole(newUserSchema.Role) {
 		return nil, errors.New(
 			fmt.Sprintf("[UserResource.Create] error creating user. Unknown role %s", newUserSchema.Role))
 	}
@@ -51,7 +51,11 @@ func (ur *UserResource) Create(jsonData []byte) ([]byte, error) {
 		Role:         newUserSchema.Role,
 	}
 
-	ur.Db.Create(&user)
+	err = ur.Db.Create(&user).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("[UserResource.Create] error creating user %v", err)
+	}
 
 	rawJson, err := json.Marshal(user)
 	if err != nil {
@@ -82,9 +86,31 @@ func (ur *UserResource) Update(id string, jsonData []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	err = json.Unmarshal(jsonData, &user)
+	var updateUserSchema struct {
+		Password string `json:"password"`
+		Role     string `json:"role"`
+	}
+
+	err = json.Unmarshal(jsonData, &updateUserSchema)
 	if err != nil {
 		return nil, err
+	}
+
+	if updateUserSchema.Password != "" {
+		user.PasswordHash, err = EncryptPassword(updateUserSchema.Password)
+		if err != nil {
+			return nil, fmt.Errorf("[UserResource.Update] error encrypting password %v", err)
+		}
+	}
+
+	if updateUserSchema.Role != "" {
+		if !validRole(updateUserSchema.Role) {
+			return nil, errors.New(
+				fmt.Sprintf("[UserResource.Update] error creating user. Unknown role %s",
+					updateUserSchema.Role))
+		}
+
+		user.Role = updateUserSchema.Role
 	}
 
 	// Save to DB
@@ -251,4 +277,8 @@ func getUser(userId uint, db *gorm.DB) *User {
 	}
 
 	return &user
+}
+
+func validRole(role string) bool {
+	return contains([]string{"admin", "realtor", "client"}, role)
 }

@@ -158,8 +158,8 @@ func TestCRUDUsers(t *testing.T) {
 
 		var updUser userResponse
 		err = json.Unmarshal(rawContent, &updUser)
-		tst.Assert(t, updUser.Username == "newusr",
-			fmt.Sprintf("Expected name newusr, got %s", updUser.Username))
+		tst.Assert(t, updUser.Username == "john",
+			fmt.Sprintf("Expected name john, got %s", updUser.Username))
 		tst.Assert(t, updUser.Role == "realtor",
 			fmt.Sprintf("Expected role realtor, got %s", updUser.Role))
 		tst.Assert(t, updUser.ID == usrRes.ID,
@@ -202,6 +202,11 @@ func TestFetchOwnUserData(t *testing.T) {
 	_, err = createUser("client", "client", "client", app.Server.Db)
 	tst.Ok(t, err)
 
+	t.Run("Can't create user with same username", func(t *testing.T) {
+		_, err := createUser("admin", "admin", "admin", app.Server.Db)
+		tst.Assert(t, err != nil, "Expected error, got success")
+	})
+
 	t.Run("Read profile not logged in", func(t *testing.T) {
 		// Act
 		res, err := tst.MakeRequest("GET", serverUrl+"/profile", "", []byte(""))
@@ -237,14 +242,6 @@ func TestFetchOwnUserData(t *testing.T) {
 				fmt.Sprintf("Expected role %s, got %s", user, returnedUser.Role))
 		}
 	})
-}
-
-func create10Users(t *testing.T, db *gorm.DB) {
-	for i := 0; i < 10; i++ {
-		user := fmt.Sprintf("user%d", i)
-		_, err := createUser(user, user, "client", db)
-		tst.Ok(t, err)
-	}
 }
 
 // Creates a user. Returns its id.
