@@ -33,6 +33,20 @@ The frontend is run using `vue-cli`. `cd` into the `frontend` folder, install al
 with `npm install --saveDev` and then run `npm run serve`. This will bring up a dev server
 for the frontend.
 
+
+## Creating a first user
+
+In order to start interacting with the system a first user must be created. The api only allows
+to create clients, so in order to get admin access, you must create a client user, and then
+change the role directly in the database. This was you will have an admin that can then
+be used to create realtors and more admins.
+
+## Docs
+
+The api is documented using [Open API 2.0](https://swagger.io/specification/). See `docs/api.yml`.
+To view it in the browser install `redoc-cli` (`npm install -g redoc-cli`) and then run
+`redoc-cli serve docs/api.yml`.
+
 ## Spec
 
 *Write an application that manages apartment rentals using a REST API*
@@ -85,5 +99,3 @@ the project as functional as possible.
 - ~~Date added for apartments.~~
 - ~~Drop down/Select self for realtor.~~
 - ~~Validate apartment info.~~
-- Bonus: create users with admin.
-- Bonus: Do geocoding in the frontend.

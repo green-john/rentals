@@ -1,0 +1,442 @@
+openapi: "3.0.0"
+info:
+  version: 0.0.1
+  title: Apartment rentals like a boss
+  description: A simple API for managing apartment rentals
+  contact:
+    name: A
+    email: a@a.a
+  license:
+    name: MIT
+paths:
+  /login:
+    post:
+      description: Login a user
+      operationId: login
+      requestBody:
+        description: Authentication data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginData'
+      responses:
+        '200':
+          description: Authentication token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+        '401':
+          description: User not authenticated
+        default:
+          description: Unexpected error
+  /profile:
+    get:
+      description: Get user data
+      security:
+        - ApiKeyAuth: [admin, realtor, client]
+      operationId: profile
+      responses:
+        '200':
+          description: User data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: User not authenticated
+        default:
+          description: Unexpected error
+  /newClient:
+    post:
+      description: create client account
+      operationId: newClient
+      requestBody:
+        description: Client data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginData'
+      responses:
+        '201':
+          description: User data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Wrong input
+        default:
+          description: Unexpected error
+  /apartments:
+    post:
+      security:
+        - ApiKeyAuth: [admin, realtor]
+      description: Create a new apartment
+      operationId: addApartment
+      requestBody:
+        description: Apartment to be added
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewApartment'
+      responses:
+        '201':
+          description: Apartment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Apartment'
+        '400':
+          description: Wrong input data
+        '401':
+          description: User not authenticated
+        '403':
+          description: User not authorized
+        default:
+          description: Unexpected error
+    get:
+      security:
+        - ApiKeyAuth: [admin, realtor, client]
+      description: Get all apartments
+      operationId: getApartments
+      responses:
+        '200':
+          description: List of all apartments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Apartment'
+        '401':
+          description: User not authenticated
+        default:
+          description: unexpected error
+  /apartments/{id}:
+    get:
+      description: Returns apartment data
+      security:
+        - ApiKeyAuth: [admin, realtor, client]
+      operationId: getApartment
+      parameters:
+        - name: id
+          in: path
+          description: ID of apartment to fetch
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: apartment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Apartment'
+        '401':
+          description: Not authenticated
+        '403':
+          description: Not authorized
+        default:
+          description: Unexpected error
+    patch:
+      description: Update apartment data
+      security:
+        - ApiKeyAuth: [admin, realtor]
+      operationId: updateApartment
+      requestBody:
+        description: Apartment data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewApartment'
+      parameters:
+        - name: id
+          in: path
+          description: ID of apartment to fetch
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: apartment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Apartment'
+        '400':
+          description: Wrong input data
+        '401':
+          description: Not authenticated
+        '403':
+          description: Not authorized
+        default:
+          description: Unexpected error
+    delete:
+      description: Delete apartment
+      security:
+        - ApiKeyAuth: [admin, realtor]
+      operationId: deleteApartment
+      parameters:
+        - name: id
+          in: path
+          description: ID of apartment to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Success in deletion
+        '401':
+          description: Not authenticated
+        '403':
+          description: Not authorized
+        default:
+          description: Unexpected error
+  /users:
+    post:
+      security:
+        - ApiKeyAuth: [admin]
+      description: Create a new user
+      operationId: addUser
+      requestBody:
+        description: User to be added
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Wrong input data
+        '401':
+          description: User not authenticated
+        '403':
+          description: User not authorized
+        default:
+          description: Unexpected error
+    get:
+      security:
+        - ApiKeyAuth: [admin]
+      description: Get all users
+      operationId: getUsers
+      responses:
+        '200':
+          description: List of all users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: User not authenticated
+        '403':
+          description: User not authorized
+        default:
+          description: unexpected error
+  /users/{id}:
+    get:
+      description: Returns user data
+      security:
+        - ApiKeyAuth: [admin]
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+          description: ID of user to fetch
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Not authenticated
+        '403':
+          description: Not authorized
+        default:
+          description: Unexpected error
+    patch:
+      description: Update user data
+      security:
+        - ApiKeyAuth: [admin]
+      operationId: updateUser
+      requestBody:
+        description: User data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUser'
+      parameters:
+        - name: id
+          in: path
+          description: ID of user to update
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Wrong input data
+        '401':
+          description: Not authenticated
+        '403':
+          description: Not authorized
+        default:
+          description: Unexpected error
+    delete:
+      description: Delete user
+      security:
+        - ApiKeyAuth: [admin]
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          description: ID of user to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Success in deletion
+        '401':
+          description: Not authenticated
+        '403':
+          description: Not authorized
+        default:
+          description: Unexpected error
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+  schemas:
+    NewUser:
+      type: object
+      required:
+        - username
+        - password
+        - role
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [client, realtor, admin]
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        username:
+          type: string
+        role:
+          type: string
+          enum: [client, realtor, admin]
+    UpdateUser:
+      type: object
+      properties:
+        password:
+          type: string
+        role:
+          type: string
+          enum: [client, realtor, admin]
+    LoginData:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    AuthToken:
+      type: object
+      properties:
+        token:
+          type: string
+    NewApartment:
+      required:
+        - name
+        - realtorId
+        - floorAreaMeters
+        - pricePerMonth
+        - roomCount
+        - latitude
+        - longitude
+        - available
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        realtorId:
+          type: integer
+          format: int32
+        floorAreaMeters:
+          type: number
+          format: float
+        pricePerMonth:
+          type: number
+          format: float
+        roomCount:
+          type: integer
+          format: int32
+        latitude:
+          type: number
+          format: float
+        longitude:
+          type: number
+          format: float
+        available:
+          type: boolean
+    Apartment:
+      allOf:
+        - $ref: '#/components/schemas/NewApartment'
+        - type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+    Error:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
