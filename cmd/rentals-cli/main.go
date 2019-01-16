@@ -1,32 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"tournaments"
 )
 
 func main() {
-	//createAdmin("admin", "admin")
 	runServer()
-}
-
-func createAdmin(username, password string) {
-	db, err := rentals.ConnectToDB()
-
-	if err != nil {
-		panic(err)
-	}
-
-	ur := &rentals.UserResource{Db: db}
-
-	jsonString := fmt.Sprintf(`{"username": "%s", "password": "%s", "role": "admin"}`,
-		username, password)
-	_, err = ur.Create([]byte(jsonString))
-
-	if err != nil {
-		panic(err)
-	}
 }
 
 func runServer() {

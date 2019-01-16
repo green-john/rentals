@@ -1,13 +1,15 @@
 package rentals
 
+import "time"
+
 type uid uint
 
 type User struct {
 	// Primary key
-	ID uid `gorm:"primary_key",json:"id"`
+	ID uid `gorm:"primary_key" json:"id"`
 
 	// Username
-	Username string `gorm:"unique",json:"username"`
+	Username string `gorm:"unique" json:"username"`
 
 	// Password hash. Not included in json responses
 	PasswordHash string `json:"-"`
@@ -31,7 +33,10 @@ type UserSession struct {
 // TODO add createdAt
 type Apartment struct {
 	// Primary key
-	ID uid `gorm:"primary_key",json:"id"`
+	ID uid `gorm:"primary_key" json:"id"`
+
+	// Date added
+	DateAdded time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"dateAdded"`
 
 	// Name of this property
 	Name string `json:"name"`
@@ -40,7 +45,7 @@ type Apartment struct {
 	Desc string `json:"description"`
 
 	// Realtor associated with this apartment
-	Realtor   User `json:"-",gorm:"foreignkey:RealtorId"`
+	Realtor   User `json:"-" gorm:"foreignkey:RealtorId"`
 	RealtorId uint `json:"realtorId"`
 
 	// Floor size area

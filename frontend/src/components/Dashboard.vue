@@ -29,6 +29,7 @@
                             <b>Price:</b> <em> ${{ rental.pricePerMonthUSD }} </em>
                             <b>Area:</b> <em> {{ rental.floorAreaMeters }}m2 </em>
                             <b>Rooms:</b> <em> {{ rental.roomCount }} </em>
+                            <div class="added"><b>Added:</b> <em> {{ formatDate(rental.dateAdded) }}</em></div>
                             <div class="desc" v-if="rental.description">{{ rental.description }}</div>
                         </div>
                         <button @click="toggleAvailability(rental)"
@@ -152,7 +153,7 @@
                             lat: s.latitude,
                             lng: s.longitude
                         },
-                        infoText: `name: ${s.name} price: ${s.pricePerMonthUSD}`,
+                        infoText: `name: ${s.name}\n price: $ ${s.pricePerMonthUSD}`,
                     });
                 }
                 return m;
@@ -190,7 +191,8 @@
 
             createApartment() {
                 $rentals.newApartment(this.newApartmentData).then(res => {
-                    this.newApartmentMessage = `Apartment created with id ${res.ID}`;
+                    alert(`Apartment created with id ${res.id}`);
+                    this.clearApartmentData();
                     this.loadApartments();
                 }).catch(err => {
                     this.newApartmentMessage = `Error: ${err}`;
@@ -223,7 +225,7 @@
             },
 
             toggleAvailability(apartment) {
-                $rentals.changeAvailability(apartment.ID, !apartment.available).then(() => {
+                $rentals.changeAvailability(apartment.id, !apartment.available).then(() => {
                     this.loadApartments();
                 }).catch(err => {
                     alert(err)
@@ -243,6 +245,11 @@
                     available: null,
                 };
                 this.newApartmentMessage = "";
+            },
+
+            formatDate(strDate) {
+                const d = new Date(strDate);
+                return d.toLocaleDateString("en-us", {day: "numeric", month: "long", year: "numeric"});
             }
         },
     }

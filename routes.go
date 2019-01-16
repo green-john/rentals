@@ -85,7 +85,7 @@ func (s *Server) newClientHandler() http.HandlerFunc {
 
 		user, err := createUser(newClient.Username, newClient.Password, "client", s.Db)
 		if err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, "Internal Server error")
+			ErrorResponse(w, http.StatusInternalServerError, err.Error())
 			log.Printf("[ERROR] %v", err)
 			return
 		}

@@ -260,7 +260,7 @@ func TestCreateClient(t *testing.T) {
 	_, err = createUser("admin", "admin", "admin", app.Server.Db)
 	tst.Ok(t, err)
 
-	t.Run("Create client, not logged in, error", func(t *testing.T) {
+	t.Run("Create client, not logged in, success", func(t *testing.T) {
 		// Act
 		payload := []byte(`{"username": "client1", "password": "client1"}`)
 		res, err := tst.MakeRequest("POST", serverUrl+"/newClient", "", payload)
