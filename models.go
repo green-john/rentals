@@ -1,6 +1,9 @@
 package rentals
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 type uid uint
 
@@ -73,8 +76,37 @@ func (uid) UnmarshalJSON([]byte) error {
 
 // Validates data for a new apartment.
 func (s *Apartment) Validate() error {
-	// TODO validate this shit
-	return nil
+	allErrors := ""
+
+	if s.Name == "" {
+		allErrors += "Name can't be empty\n"
+	}
+
+	if s.FloorAreaMeters <= 0 {
+		allErrors += "Floor Area must be greater than 0\n"
+	}
+
+	if s.PricePerMonthUsd <= 0 {
+		allErrors += "Price per month must be greater than 0\n"
+	}
+
+	if s.RoomCount <= 0 {
+		allErrors += "Room count must be greater than 0\n"
+	}
+
+	if s.Latitude < -90 || s.Latitude > 90 {
+		allErrors += "Latitude must be in the range [-90.0, 90.0]\n"
+	}
+
+	if s.Longitude < -180 || s.Longitude > 180 {
+		allErrors += "Longitude must be in the range [-180.0, 180.0]\n"
+	}
+
+	if allErrors == "" {
+		return nil
+	}
+
+	return errors.New("\n" + allErrors)
 }
 
 var DbModels = []interface{}{

@@ -7,8 +7,8 @@
             <input type="submit" value="Login">
         </form>
         <div>Don have an account?
-            <router-link to="/new">Create one</router-link
-        ></div>
+            <router-link to="/new">Create one</router-link>
+        </div>
 
         <div class="error">
             {{ errorMsg }}

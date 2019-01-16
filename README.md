@@ -52,7 +52,7 @@ the project as functional as possible.
 - ~~Fix frontend.~~
 - ~~Create client account endpoint.~~
 - ~~Date added for apartments.~~
-- Drop down/Select self for realtor.
-- Validate apartment info.
+- ~~Drop down/Select self for realtor.~~
+- ~~Validate apartment info.~~
 - Bonus: create users with admin.
 - Bonus: Do geocoding in the frontend.

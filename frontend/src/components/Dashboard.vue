@@ -67,8 +67,19 @@
                            v-model.number="newApartmentData.latitude">
                     <input placeholder="Longitude" type="number" required step="0.0000001" min="-180" max="180"
                            v-model.number="newApartmentData.longitude">
-                    <input placeholder="Realtor Id" type="number" required min="0"
-                           v-model.number="newApartmentData.realtorId">
+
+                    <!--<input placeholder="Realtor Id" type="number" required min="0"-->
+                    <!--v-model.number="newApartmentData.realtorId">-->
+
+                    <label v-if="isAdmin()" for="realtor">Realtor:
+                        <select v-if="isAdmin()" id="realtor" name="realtorDD"
+                                v-model.number="newApartmentData.realtorId">
+                            <option v-for="r of allAdminsAndRealtors" :value="r.id">
+                                {{r.username}} (id: {{r.id}}) (role: {{r.role}})</option>
+                        </select>
+                    </label>
+                    <label v-else>(You will be selected as the realtor)</label>
+
                     <label for="available">Available
                         <input id="available" type="checkbox" v-model="newApartmentData.available">
                     </label>
@@ -85,6 +96,7 @@
 <script>
     import $auth from "./auth";
     import $rentals from './rentals';
+    import $users from "./users";
 
     export default {
         name: 'Dashboard',
@@ -131,6 +143,8 @@
                     role: null,
                 },
 
+                allUsers: [],
+
                 newApartmentMessage: ""
             }
         },
@@ -138,6 +152,7 @@
         created() {
             this.loadApartments();
             this.loadUserData();
+            this.tryLoadingAllUsers();
         },
 
         computed: {
@@ -157,6 +172,17 @@
                     });
                 }
                 return m;
+            },
+
+            allAdminsAndRealtors() {
+                const realtors = [];
+                for (let u of this.allUsers) {
+                    if (u.role === "realtor" || u.role === "admin") {
+                        realtors.push(u);
+                    }
+                }
+
+                return realtors;
             }
         },
 
@@ -190,6 +216,11 @@
             },
 
             createApartment() {
+                // If is not set, set it to myself
+                if (!this.newApartmentData.realtorId) {
+                    this.newApartmentData.realtorId = this.userData.id;
+                }
+
                 $rentals.newApartment(this.newApartmentData).then(res => {
                     alert(`Apartment created with id ${res.id}`);
                     this.clearApartmentData();
@@ -220,8 +251,20 @@
                 })
             },
 
+            tryLoadingAllUsers() {
+                $users.getAllUsers().then(res => {
+                    this.allUsers = res;
+                }).catch(err => {
+                    alert(err);
+                })
+            },
+
             canCrudApartment() {
-                return this.userData.role === 'admin' || this.userData.role === 'realtor';
+                return this.isAdmin() || this.userData.role === 'realtor';
+            },
+
+            isAdmin() {
+                return this.userData.role === 'admin';
             },
 
             toggleAvailability(apartment) {

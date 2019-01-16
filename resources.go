@@ -231,7 +231,7 @@ func (ar *ApartmentResource) createApartment(jsonData []byte) (*Apartment, error
 
 	err = newApartment.Validate()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error validating apartment: %v", err)
 	}
 
 	return &newApartment, nil
