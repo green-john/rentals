@@ -74,7 +74,7 @@
                     <label v-if="isAdmin()" for="realtor">Realtor:
                         <select v-if="isAdmin()" id="realtor" name="realtorDD"
                                 v-model.number="newApartmentData.realtorId">
-                            <option v-for="r of allAdminsAndRealtors" :value="r.id">
+                            <option v-for="r of allAdminsAndRealtors" :key="r.id" :value="r.id">
                                 {{r.username}} (id: {{r.id}}) (role: {{r.role}})</option>
                         </select>
                     </label>

@@ -2,6 +2,35 @@
 
 Manage rental properties
 
+## Usage
+
+The application is written with a Go backend and a Javascript (vue.js) frontend.
+Make sure `baseUrl` is set correctly in `frontend/src/components/http.js`, otherwise
+requests to the server will fail.
+
+The server takes the database host, name and user from env variable, specifically:
+
+```
+RENTALS_DB_HOST
+RENTALS_DB_NAME
+RENTALS_DB_USER
+```
+
+See `scripts/run.sh` for an example on how to start the server. `scripts/rentals-cli`
+is a compiled binary that can be used directly to run the server. Otherwise, you can install
+go > 1.11 (New modules are used) and build all the project. To obtain a binary, cd into
+`cmd/rentals-cli` and run `go build ./...`.
+
+Scripts in `scripts` DO NOT WORK if you are outside the directory. Make sure you cd into
+it.
+
+To run all tests, run `scripts/all_tests.sh`. As previously stated, make sure you
+are inside the `scripts` directory.
+
+The frontend is run using `vue-cli`. `cd` into the `frontend` folder, install all dependencies
+with `npm install --saveDev` and then run `npm run serve`. This will bring up a dev server
+for the frontend.
+
 ## Spec
 
 *Write an application that manages apartment rentals using a REST API*
