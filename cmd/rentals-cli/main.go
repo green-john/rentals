@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"rentals"
@@ -11,9 +12,13 @@ func main() {
 }
 
 func runServer() {
-	addr := os.Getenv("RENTALS_ADDRESS")
-	if addr == "" {
+
+	var addr string
+	port := os.Getenv("PORT")
+	if port == "" {
 		addr = "localhost:8083"
+	} else {
+		addr = fmt.Sprintf(":%s", port)
 	}
 
 	testing := true
