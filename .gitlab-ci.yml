@@ -23,7 +23,7 @@ build:
 test:
   stage: test
   variables:
-    RENTALS_TESTING: True
+    RENTALS_TESTING: yo
   script:
     - go test ./...
 
@@ -35,5 +35,4 @@ deploy:
     - apt-get install -y ruby-dev rubygems git
     - gem install dpl
     - echo "deploying"
-    - dpl --skip-cleanup --provider=heroku --app=trenlas --api-key=`f0b88b74-48ca-4df3-bd86-666f986161e8`
-    - f0b88b74-48ca-4df3-bd86-666f986161e8
+    - dpl --skip-cleanup --provider=heroku --app=trenlas --api-key=`$API_KEY`
