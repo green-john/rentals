@@ -51,8 +51,8 @@ func (app *App) Setup() error {
 	return app.Server.Setup()
 }
 
-func NewApp(addr string) (*App, error) {
-	db, err := ConnectToDB()
+func NewApp(addr string, testing bool) (*App, error) {
+	db, err := ConnectToDB(testing)
 	if err != nil {
 		return nil, fmt.Errorf("[NewApp] error in ConnectToDB(): %v", err)
 	}

@@ -29,7 +29,7 @@ type apartmentResponse struct {
 func TestCRUDApartment(t *testing.T) {
 	var wg sync.WaitGroup
 	const addr = "localhost:8083"
-	app, err := rentals.NewApp(addr)
+	app, err := rentals.NewApp(addr, true)
 	tst.Ok(t, err)
 	tst.Ok(t, app.Setup())
 
@@ -177,7 +177,7 @@ func TestCRUDApartment(t *testing.T) {
 func TestReadAllApartmentsAndSearch(t *testing.T) {
 	var wg sync.WaitGroup
 	const addr = "localhost:8083"
-	app, err := rentals.NewApp(addr)
+	app, err := rentals.NewApp(addr, true)
 	tst.Ok(t, err)
 	tst.Ok(t, app.Setup())
 

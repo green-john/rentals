@@ -23,7 +23,7 @@ func TestCRUDUsers(t *testing.T) {
 	// Arrange
 	var wg sync.WaitGroup
 	const addr = "localhost:8083"
-	app, err := rentals.NewApp(addr)
+	app, err := rentals.NewApp(addr, true)
 	tst.Ok(t, err)
 	tst.Ok(t, app.Setup())
 
@@ -181,7 +181,7 @@ func TestCRUDUsers(t *testing.T) {
 func TestFetchOwnUserData(t *testing.T) {
 	var wg sync.WaitGroup
 	const addr = "localhost:8083"
-	app, err := rentals.NewApp(addr)
+	app, err := rentals.NewApp(addr, true)
 	tst.Ok(t, err)
 	tst.Ok(t, app.Setup())
 
@@ -243,7 +243,7 @@ func TestFetchOwnUserData(t *testing.T) {
 func TestCreateClient(t *testing.T) {
 	var wg sync.WaitGroup
 	const addr = "localhost:8083"
-	app, err := rentals.NewApp(addr)
+	app, err := rentals.NewApp(addr, true)
 	tst.Ok(t, err)
 	tst.Ok(t, app.Setup())
 

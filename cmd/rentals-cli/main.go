@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"rentals"
 )
 
@@ -10,8 +11,17 @@ func main() {
 }
 
 func runServer() {
-	const addr = "localhost:8083"
-	app, err := rentals.NewApp(addr)
+	addr := os.Getenv("RENTALS_ADDRESS")
+	if addr == "" {
+		addr = "localhost:8083"
+	}
+
+	testing := true
+	if os.Getenv("RENTALS_TESTING") == "" {
+		testing = false
+	}
+
+	app, err := rentals.NewApp(addr, testing)
 
 	if err != nil {
 		panic(err)
