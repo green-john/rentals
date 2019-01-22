@@ -1,4 +1,4 @@
-module tournaments
+module rentals
 
 require (
 	github.com/gorilla/handlers v1.4.0

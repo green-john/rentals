@@ -86,7 +86,7 @@ the project as functional as possible.
 - ~~Authentication for user creation.~~
 - ~~Apartment creation.~~
 - ~~Add authorization to user and apartment creation.~~
-- ~~Add read/update/delete tournaments.~~
+- ~~Add read/update/delete rentals.~~
 - ~~Add read/update/delete users.~~
 - ~~Search by floor area size, price, rooms.~~
 - ~~Write frontend.~~

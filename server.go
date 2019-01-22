@@ -3,7 +3,7 @@ package rentals
 import (
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
-	"tournaments/roles"
+	"rentals/roles"
 )
 
 type Server struct {

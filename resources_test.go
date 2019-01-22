@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"rentals/tst"
 	"testing"
-	"tournaments/tst"
 )
 
 func TestFindApartment(t *testing.T) {

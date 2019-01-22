@@ -7,8 +7,8 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"os"
+	"rentals/roles"
 	"time"
-	"tournaments/roles"
 )
 
 type App struct {

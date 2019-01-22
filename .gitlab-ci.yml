@@ -1,0 +1,29 @@
+image: golang:1.11
+
+services:
+  - postgres:latest
+
+variables:
+  RENTALS_DB_NAME: rentals-dev
+  RENTALS_DB_USER: juan
+  RENTALS_DB_HOST: postgres
+
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  stage: build
+  script:
+    - go build ./...
+
+test:
+  stage: test
+  script:
+    - go test ./...
+
+deploy:
+  stage: deploy
+  script:
+    - echo "deploying"

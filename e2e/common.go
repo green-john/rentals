@@ -3,8 +3,8 @@ package e2e
 import (
 	"encoding/json"
 	"fmt"
+	"rentals/tst"
 	"testing"
-	"tournaments/tst"
 )
 
 func loginWithUser(t *testing.T, serverUrl, username, pwd string) (string, error) {

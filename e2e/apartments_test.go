@@ -7,10 +7,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"rentals"
+	"rentals/tst"
 	"sync"
 	"testing"
-	"tournaments"
-	"tournaments/tst"
 )
 
 type apartmentResponse struct {

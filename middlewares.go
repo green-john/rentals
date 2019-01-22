@@ -2,8 +2,8 @@ package rentals
 
 import (
 	"net/http"
+	"rentals/roles"
 	"strings"
-	"tournaments/roles"
 )
 
 // Middleware used to authenticate and authorize users.

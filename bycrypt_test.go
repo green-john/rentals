@@ -2,8 +2,8 @@ package rentals
 
 import (
 	"fmt"
+	"rentals/tst"
 	"testing"
-	"tournaments/tst"
 )
 
 func TestEncryptPassword(t *testing.T) {

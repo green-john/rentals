@@ -6,8 +6,8 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"net/http/httptest"
+	"rentals/tst"
 	"testing"
-	"tournaments/tst"
 )
 
 type PageResource struct {
