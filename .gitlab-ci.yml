@@ -4,8 +4,10 @@ services:
   - postgres:latest
 
 variables:
-  RENTALS_DB_NAME: rentals-dev
-  RENTALS_DB_USER: juan
+  POSTGRES_DB: rentals-dev
+  POSTGRES_USER: juan
+  RENTALS_DB_NAME: $POSTGRES_DB
+  RENTALS_DB_USER: $POSTGRES_USER
   RENTALS_DB_HOST: postgres
 
 stages:
