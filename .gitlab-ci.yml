@@ -35,4 +35,4 @@ deploy:
     - apt-get install -y ruby-dev rubygems git
     - gem install dpl
     - echo "deploying"
-    - dpl --skip-cleanup --provider=heroku --app=trenlas --api-key=`$API_KEY`
+    - dpl --skip-cleanup --provider=heroku --app=trenlas --api-key=$API_KEY
