@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"log"
 	"os"
 )
 
@@ -33,14 +32,10 @@ func ConnectToDB(testing bool) (*gorm.DB, error) {
 		cnxString += " " + extras
 	}
 
-	log.Printf("Connecting to [%s]", cnxString)
-
 	db, err := gorm.Open(dialect, cnxString)
 	if err != nil {
 		return nil, fmt.Errorf("[ConnectToDB] error calling gorm.Open(): %v", err)
 	}
-
-	log.Print("Connected")
 
 	return db, nil
 }
