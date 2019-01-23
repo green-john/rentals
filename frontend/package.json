@@ -7,6 +7,9 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
+  "vue": {
+    "publicPath": "/rentals"
+  },
   "dependencies": {
     "axios": "^0.18.0",
     "vue": "^2.5.21",
