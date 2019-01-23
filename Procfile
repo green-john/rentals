@@ -1,1 +1,1 @@
-web: cmd/rentals-cli/rentals-cli
+web: rentals-cli
