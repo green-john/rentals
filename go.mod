@@ -1,3 +1,5 @@
+// +heroku install ./cmd/...
+
 module rentals
 
 require (
