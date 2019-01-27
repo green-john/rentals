@@ -10,8 +10,7 @@ import VModal from 'vue-js-modal';
 
 Vue.use(VueRouter);
 Vue.use(VueGoogleMaps, {
-    load: {
-        key: 'AIzaSyDf43lPdwlF98RCBsJOFNKOkoEjkwxb5Sc'
+    load: { key: 'AIzaSyDf43lPdwlF98RCBsJOFNKOkoEjkwxb5Sc'
     }
 });
 Vue.use(VModal);
@@ -29,6 +28,7 @@ function requireAuth(to, from, next) {
 
 const router = new VueRouter({
     mode: 'history',
+    base: '/rentals/',
     routes: [
         {path: '/login', component: Login},
         {path: '/new', component: NewAccount},

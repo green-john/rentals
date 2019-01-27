@@ -8,7 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "vue": {
-    "publicPath": "/rentals"
+    "publicPath": "/rentals/"
   },
   "dependencies": {
     "axios": "^0.18.0",
