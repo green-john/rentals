@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+var DbModels = []interface{}{
+	&User{},
+	&UserSession{},
+	&Apartment{},
+}
+
 type uid uint
 
 type User struct {
@@ -33,7 +39,6 @@ type UserSession struct {
 	User   User
 }
 
-// TODO add createdAt
 type Apartment struct {
 	// Primary key
 	ID uid `gorm:"primary_key" json:"id"`
@@ -109,8 +114,3 @@ func (s *Apartment) Validate() error {
 	return errors.New("\n" + allErrors)
 }
 
-var DbModels = []interface{}{
-	&User{},
-	&UserSession{},
-	&Apartment{},
-}

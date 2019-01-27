@@ -15,22 +15,21 @@ type Server struct {
 }
 
 func (s *Server) Setup() error {
-	// Add all routes for resources
-	resources := []Resource{
+	// Create routes for all resources
+	for _, resource := range []Resource{
 		&UserResource{Db: s.Db},
 		&ApartmentResource{Db: s.Db},
-	}
-	for _, resource := range resources {
+	} {
 		CreateRoutes(resource, s.Router)
 	}
 
-	// Handlers that don't belong to resources
+	// Add other handlers
 	s.Router.HandleFunc("/login", s.LoginHandler()).Methods("POST")
 	s.Router.HandleFunc("/profile", s.profileHandler()).Methods("GET")
 	s.Router.HandleFunc("/newClient", s.newClientHandler()).Methods("POST")
 
 	// Add Authentication/Authorization middleware
-	s.Router.Use(s.AuthenticationMiddleware)
+	s.Router.Use(s.AuthMiddleware)
 
 	// Add content-type=application/json middleware
 	s.Router.Use(s.ContentTypeJsonMiddleware)

@@ -30,7 +30,7 @@ func (app *App) ServeHTTP() error {
 
 	// Enable CORS for testing purposes. This should be
 	// configured properly for production
-	allOrigins := handlers.AllowedOrigins([]string{"*"})
+	allOrigins := handlers.AllowedOrigins([]string{"ruizandr.es,localhost"})
 	allMethods := handlers.AllowedMethods([]string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"})
 	allHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 

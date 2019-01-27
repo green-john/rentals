@@ -99,3 +99,9 @@ the project as functional as possible.
 - ~~Date added for apartments.~~
 - ~~Drop down/Select self for realtor.~~
 - ~~Validate apartment info.~~
+
+## TODO
+
+- Add logging to db errors
+- Find a better structure for the files. Right now there are two
+places where routes are added.

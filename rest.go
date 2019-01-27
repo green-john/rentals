@@ -36,7 +36,7 @@ type Resource interface {
 	Delete(id string) error
 }
 
-// Creates all routes for the given resource.
+// Creates routes for the given resource.
 // HTTP verbs are mapped to CRUD operations, respectively.
 //
 // POST -> Create

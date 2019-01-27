@@ -8,7 +8,7 @@ import (
 
 // Middleware used to authenticate and authorize users.
 // Uses the url to check which resource is being accessed
-func (s *Server) AuthenticationMiddleware(next http.Handler) http.Handler {
+func (s *Server) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Skip if we are trying to login or creating a new client
 		if r.URL.Path == "/login" || r.URL.Path == "/newClient" {

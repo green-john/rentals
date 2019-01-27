@@ -4,5 +4,5 @@ import "net/http"
 
 func ErrorResponse(w http.ResponseWriter, statusCode int, errorMsg string) {
 	w.WriteHeader(statusCode)
-	w.Write([]byte(errorMsg))
+	_, _ = w.Write([]byte(errorMsg))
 }
