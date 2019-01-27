@@ -7,7 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"rentals"
+	models "rentals"
+	rentals "rentals/http"
 	"rentals/tst"
 	"sync"
 	"testing"
@@ -230,7 +231,7 @@ func TestFetchOwnUserData(t *testing.T) {
 			tst.Assert(t, res.StatusCode == http.StatusOK,
 				fmt.Sprintf("Expected 200, got %d", res.StatusCode))
 
-			var returnedUser rentals.User
+			var returnedUser models.User
 			decoder := json.NewDecoder(res.Body)
 			err = decoder.Decode(&returnedUser)
 			tst.Ok(t, err)
@@ -270,7 +271,7 @@ func TestCreateClient(t *testing.T) {
 		tst.Assert(t, res.StatusCode == http.StatusCreated,
 			fmt.Sprintf("Expected 201, got %d", res.StatusCode))
 
-		var returnedUser rentals.User
+		var returnedUser models.User
 		decoder := json.NewDecoder(res.Body)
 		err = decoder.Decode(&returnedUser)
 		tst.Ok(t, err)
@@ -279,7 +280,7 @@ func TestCreateClient(t *testing.T) {
 	})
 }
 
-func assertUser(t *testing.T, user *rentals.User, username, role string, ) {
+func assertUser(t *testing.T, user *models.User, username, role string, ) {
 	tst.Assert(t, user.Username == username,
 		fmt.Sprintf("Expected username %s, got %s", username, user.Username))
 

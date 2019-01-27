@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"rentals"
+	rentals "rentals/http"
 	"rentals/tst"
 	"sync"
 	"testing"

@@ -1,4 +1,4 @@
-package rentals
+package crypto
 
 import (
 	"fmt"

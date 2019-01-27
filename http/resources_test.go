@@ -1,20 +1,21 @@
-package rentals
+package http
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"rentals"
 	"rentals/tst"
 	"testing"
 )
 
 func TestFindApartment(t *testing.T) {
 	// Arrange
-	db, err := ConnectToDB(true)
+	db, err := rentals.ConnectToDB(true)
 	tst.Ok(t, err)
 
-	db.AutoMigrate(DbModels...)
-	defer db.DropTableIfExists(DbModels...)
+	db.AutoMigrate(rentals.DbModels...)
+	defer db.DropTableIfExists(rentals.DbModels...)
 
 	aptResource := &ApartmentResource{Db: db}
 
@@ -34,7 +35,7 @@ func TestFindApartment(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("%s -> %v", elt.query, elt.resultIds), func(t *testing.T) {
 			// Act
-			var retApts []Apartment
+			var retApts []rentals.Apartment
 			res, err := aptResource.Find(elt.query)
 			tst.Ok(t, err)
 

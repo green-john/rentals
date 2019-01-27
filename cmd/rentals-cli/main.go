@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"rentals"
+	"rentals/http"
 )
 
 func main() {
@@ -12,7 +12,6 @@ func main() {
 }
 
 func runServer() {
-
 	var addr string
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -26,7 +25,7 @@ func runServer() {
 		testing = false
 	}
 
-	app, err := rentals.NewApp(addr, testing)
+	app, err := http.NewApp(addr, testing)
 
 	if err != nil {
 		panic(err)

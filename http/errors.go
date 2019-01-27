@@ -1,4 +1,4 @@
-package rentals
+package http
 
 import "net/http"
 

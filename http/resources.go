@@ -1,4 +1,4 @@
-package rentals
+package http
 
 import (
 	"encoding/json"
@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"net/url"
+	"rentals"
+	"rentals/crypto"
 	"strconv"
 )
 
@@ -49,7 +51,7 @@ func (ur *UserResource) Create(jsonData []byte) ([]byte, error) {
 }
 
 func (ur *UserResource) Find(query string) ([]byte, error) {
-	var users []User
+	var users []rentals.User
 	ur.Db.Find(&users)
 
 	return json.Marshal(users)
@@ -80,7 +82,7 @@ func (ur *UserResource) Update(id string, jsonData []byte) ([]byte, error) {
 	}
 
 	if updateUserSchema.Password != "" {
-		user.PasswordHash, err = EncryptPassword(updateUserSchema.Password)
+		user.PasswordHash, err = crypto.EncryptPassword(updateUserSchema.Password)
 		if err != nil {
 			return nil, fmt.Errorf("[UserResource.Update] error encrypting password %v", err)
 		}
@@ -151,9 +153,9 @@ func (ar *ApartmentResource) Find(query string) ([]byte, error) {
 	}
 
 	filters := map[string]string{
-		"floor_area_meters":   getJsonTag(Apartment{}, "FloorAreaMeters"),
-		"price_per_month_usd": getJsonTag(Apartment{}, "PricePerMonthUsd"),
-		"room_count":          getJsonTag(Apartment{}, "RoomCount"),
+		"floor_area_meters":   getJsonTag(rentals.Apartment{}, "FloorAreaMeters"),
+		"price_per_month_usd": getJsonTag(rentals.Apartment{}, "PricePerMonthUsd"),
+		"room_count":          getJsonTag(rentals.Apartment{}, "RoomCount"),
 	}
 
 	tx := ar.Db.New()
@@ -168,7 +170,7 @@ func (ar *ApartmentResource) Find(query string) ([]byte, error) {
 		}
 	}
 
-	var apartments []Apartment
+	var apartments []rentals.Apartment
 	tx.Find(&apartments)
 	return json.Marshal(apartments)
 }
@@ -200,24 +202,24 @@ func (ar *ApartmentResource) Delete(id string) error {
 	return nil
 }
 
-func getApartment(id string, db *gorm.DB) (*Apartment, error) {
+func getApartment(id string, db *gorm.DB) (*rentals.Apartment, error) {
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
 		return nil, err
 	}
 
-	var apartment Apartment
+	var apartment rentals.Apartment
 	db.First(&apartment, idInt)
 
-	if apartment.ID != uid(idInt) {
+	if int(apartment.ID) != idInt {
 		return nil, NotFoundError(fmt.Sprintf("apartment %d not found", idInt))
 	}
 
 	return &apartment, nil
 }
 
-func (ar *ApartmentResource) createApartment(jsonData []byte) (*Apartment, error) {
-	var newApartment Apartment
+func (ar *ApartmentResource) createApartment(jsonData []byte) (*rentals.Apartment, error) {
+	var newApartment rentals.Apartment
 
 	err := json.Unmarshal(jsonData, &newApartment)
 	if err != nil {
@@ -237,7 +239,7 @@ func (ar *ApartmentResource) createApartment(jsonData []byte) (*Apartment, error
 	return &newApartment, nil
 }
 
-func getUserIdStr(id string, db *gorm.DB) (*User, error) {
+func getUserIdStr(id string, db *gorm.DB) (*rentals.User, error) {
 	intId, err := strconv.Atoi(id)
 	if err != nil {
 		return nil, err
@@ -251,29 +253,29 @@ func getUserIdStr(id string, db *gorm.DB) (*User, error) {
 	return usr, nil
 }
 
-func getUser(userId uint, db *gorm.DB) *User {
-	var user User
+func getUser(userId uint, db *gorm.DB) *rentals.User {
+	var user rentals.User
 	db.First(&user, userId)
 
-	if user.ID != uid(userId) {
+	if uint(user.ID) != userId {
 		return nil
 	}
 
 	return &user
 }
 
-func createUser(username, password, role string, db *gorm.DB) (*User, error) {
+func createUser(username, password, role string, db *gorm.DB) (*rentals.User, error) {
 	if !validRole(role) {
 		return nil, errors.New(
 			fmt.Sprintf("error creating user. Unknown role %s", role))
 	}
 
-	pwdHash, err := EncryptPassword(password)
+	pwdHash, err := crypto.EncryptPassword(password)
 	if err != nil {
 		return nil, fmt.Errorf("error encrypting password %v", err)
 	}
 
-	user := User{
+	user := rentals.User{
 		Username:     username,
 		PasswordHash: pwdHash,
 		Role:         role,

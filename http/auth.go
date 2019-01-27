@@ -1,10 +1,12 @@
-package rentals
+package http
 
 import (
 	"crypto/rand"
 	"errors"
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"rentals"
+	"rentals/crypto"
 )
 
 // Elements related to authentication and authorization.
@@ -27,7 +29,7 @@ type Authenticator interface {
 	// Verify checks whether or not the given token is valid.
 	// If it is, it returns the user associated to such token.
 	// Otherwise, returns nil.
-	Verify(token string) *User
+	Verify(token string) *rentals.User
 }
 
 // Implementation of a Authenticator using a relational database
@@ -36,7 +38,7 @@ type dbAuthenticator struct {
 }
 
 func (a *dbAuthenticator) Login(username, password string) (string, error) {
-	var user User
+	var user rentals.User
 	a.Db.Where("username = ?", username).First(&user)
 
 	// Username was not found as we don't allow empty passwords
@@ -44,7 +46,7 @@ func (a *dbAuthenticator) Login(username, password string) (string, error) {
 		return "", LoginError
 	}
 
-	if CheckPassword(user.PasswordHash, password) != nil {
+	if crypto.CheckPassword(user.PasswordHash, password) != nil {
 		return "", LoginError
 	}
 
@@ -56,7 +58,7 @@ func (a *dbAuthenticator) Login(username, password string) (string, error) {
 
 	// Otherwise, create a new token and session and save it to the Db
 	token := generateToken()
-	session := UserSession{
+	session := rentals.UserSession{
 		Token:  token,
 		UserID: uint(user.ID),
 		User:   user,
@@ -66,8 +68,8 @@ func (a *dbAuthenticator) Login(username, password string) (string, error) {
 	return token, nil
 }
 
-func (a *dbAuthenticator) findExistingUserSession(user User) *UserSession {
-	var session UserSession
+func (a *dbAuthenticator) findExistingUserSession(user rentals.User) *rentals.UserSession {
+	var session rentals.UserSession
 
 	a.Db.Where("user_id = ?", user.ID).First(&session)
 
@@ -93,15 +95,15 @@ func generateToken() string {
 	return fmt.Sprintf("%X", ret)
 }
 
-func (a *dbAuthenticator) Verify(token string) *User {
-	var userSession UserSession
+func (a *dbAuthenticator) Verify(token string) *rentals.User {
+	var userSession rentals.UserSession
 	a.Db.Where("token = ?", token).First(&userSession)
 
 	if userSession.Token != token {
 		return nil
 	}
 
-	var user User
+	var user rentals.User
 	a.Db.Model(&userSession).Related(&user)
 
 	return &user
