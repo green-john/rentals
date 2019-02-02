@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"rentals"
 	"rentals/transport"
 )
 
@@ -25,17 +26,19 @@ func runServer() {
 		testing = false
 	}
 
-	app, err := transport.NewApp(addr, testing)
-
+	db, err := rentals.ConnectToDB(testing)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	err = app.Setup()
+	authN := transport.NewDbAuthnService(db)
+	authZ := transport.NewAuthzService()
+
+	srv, err := transport.NewServer(db, authN, authZ)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	// Make sure we delete all things after we are done
-	log.Printf("[ERROR] %s", app.ServeHTTP())
+	log.Printf("[ERROR] %s", srv.ServeHTTP(addr))
 }

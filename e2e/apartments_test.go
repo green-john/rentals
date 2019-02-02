@@ -47,7 +47,7 @@ func newServer(t *testing.T) (*transport.Server, func()) {
 func startServer(wg sync.WaitGroup, addr string, srv *transport.Server) {
 	go func() {
 		defer wg.Done()
-		log.Printf("[ERROR] %s", http.ListenAndServe(addr, srv.Router))
+		log.Printf("[ERROR] %s", srv.ServeHTTP(addr))
 	}()
 }
 
