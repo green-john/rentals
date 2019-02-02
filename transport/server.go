@@ -1,4 +1,4 @@
-package http
+package transport
 
 import (
 	"errors"
@@ -50,7 +50,7 @@ func (s *Server) Setup() error {
 	return nil
 }
 
-// Serves http requests. app.Server must be Initialized,
+// Serves transport requests. app.Server must be Initialized,
 // otherwise an error is thrown
 func (s *Server) ServeHTTP(addr string) error {
 	if !s.Initialized {
@@ -86,11 +86,18 @@ func (s *Server) setupAuthorization() {
 func NewServer(db *gorm.DB, authNService AuthnService, authZService *AuthzService) (*Server, error) {
 	router := mux.NewRouter()
 
-	return &Server{
+	s := &Server{
 		Db:          db,
 		Router:      router,
 		AuthN:       authNService,
 		AuthZ:       authZService,
 		Initialized: false,
-	}, nil
+	}
+
+	err := s.Setup()
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }

@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"io/ioutil"
-	"log"
 	"net/http"
-	models "rentals"
-	rentals "rentals/http"
+	"rentals"
+	"rentals/transport"
 	"rentals/tst"
 	"sync"
 	"testing"
@@ -24,19 +23,13 @@ func TestCRUDUsers(t *testing.T) {
 	// Arrange
 	var wg sync.WaitGroup
 	const addr = "localhost:8083"
-	app, err := rentals.NewApp(addr, true)
-	tst.Ok(t, err)
-	tst.Ok(t, app.Setup())
+	srv, clean := newServer(t)
+	defer clean()
 
-	// Make sure we delete all things after we are done
-	defer app.DropDB()
 	serverUrl := fmt.Sprintf("http://%s", addr)
 
 	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		log.Printf("[ERROR] %s", app.ServeHTTP())
-	}()
+	startServer(wg, addr, srv)
 
 	payload := []byte(`{"username":"john", "password": "secret", "role": "client"}`)
 
@@ -74,7 +67,7 @@ func TestCRUDUsers(t *testing.T) {
 	t.Run("CRUD user with client, realtor, fail", func(t *testing.T) {
 		for _, user := range []string{"client", "realtor"} {
 			// Create and get token
-			_, err := createUser(user, user, user, app.Server.Db)
+			_, err := createUser(user, user, user, srv.Db)
 			tst.Ok(t, err)
 			token, err := loginWithUser(t, serverUrl, user, user)
 			tst.Ok(t, err)
@@ -112,7 +105,7 @@ func TestCRUDUsers(t *testing.T) {
 
 	t.Run("CRUD user with admin, success", func(t *testing.T) {
 		// Create and admin
-		_, err := createUser("admin", "admin", "admin", app.Server.Db)
+		_, err := createUser("admin", "admin", "admin", srv.Db)
 		tst.Ok(t, err)
 		token, err := loginWithUser(t, serverUrl, "admin", "admin")
 		tst.Ok(t, err)
@@ -182,29 +175,23 @@ func TestCRUDUsers(t *testing.T) {
 func TestFetchOwnUserData(t *testing.T) {
 	var wg sync.WaitGroup
 	const addr = "localhost:8083"
-	app, err := rentals.NewApp(addr, true)
-	tst.Ok(t, err)
-	tst.Ok(t, app.Setup())
+	srv, clean := newServer(t)
+	defer clean()
 
-	// Make sure we delete all things after we are done
-	defer app.DropDB()
 	serverUrl := fmt.Sprintf("http://%s", addr)
 
 	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		log.Printf("[ERROR] %s", app.ServeHTTP())
-	}()
+	startServer(wg, addr, srv)
 
-	_, err = createUser("admin", "admin", "admin", app.Server.Db)
+	_, err := createUser("admin", "admin", "admin", srv.Db)
 	tst.Ok(t, err)
-	_, err = createUser("realtor", "realtor", "realtor", app.Server.Db)
+	_, err = createUser("realtor", "realtor", "realtor", srv.Db)
 	tst.Ok(t, err)
-	_, err = createUser("client", "client", "client", app.Server.Db)
+	_, err = createUser("client", "client", "client", srv.Db)
 	tst.Ok(t, err)
 
 	t.Run("Can't create user with same username", func(t *testing.T) {
-		_, err := createUser("admin", "admin", "admin", app.Server.Db)
+		_, err := createUser("admin", "admin", "admin", srv.Db)
 		tst.Assert(t, err != nil, "Expected error, got success")
 	})
 
@@ -231,7 +218,7 @@ func TestFetchOwnUserData(t *testing.T) {
 			tst.Assert(t, res.StatusCode == http.StatusOK,
 				fmt.Sprintf("Expected 200, got %d", res.StatusCode))
 
-			var returnedUser models.User
+			var returnedUser rentals.User
 			decoder := json.NewDecoder(res.Body)
 			err = decoder.Decode(&returnedUser)
 			tst.Ok(t, err)
@@ -244,21 +231,15 @@ func TestFetchOwnUserData(t *testing.T) {
 func TestCreateClient(t *testing.T) {
 	var wg sync.WaitGroup
 	const addr = "localhost:8083"
-	app, err := rentals.NewApp(addr, true)
-	tst.Ok(t, err)
-	tst.Ok(t, app.Setup())
+	srv, clean := newServer(t)
+	defer clean()
 
-	// Make sure we delete all things after we are done
-	defer app.DropDB()
 	serverUrl := fmt.Sprintf("http://%s", addr)
 
 	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		log.Printf("[ERROR] %s", app.ServeHTTP())
-	}()
+	startServer(wg, addr, srv)
 
-	_, err = createUser("admin", "admin", "admin", app.Server.Db)
+	_, err := createUser("admin", "admin", "admin", srv.Db)
 	tst.Ok(t, err)
 
 	t.Run("Create client, not logged in, success", func(t *testing.T) {
@@ -271,7 +252,7 @@ func TestCreateClient(t *testing.T) {
 		tst.Assert(t, res.StatusCode == http.StatusCreated,
 			fmt.Sprintf("Expected 201, got %d", res.StatusCode))
 
-		var returnedUser models.User
+		var returnedUser rentals.User
 		decoder := json.NewDecoder(res.Body)
 		err = decoder.Decode(&returnedUser)
 		tst.Ok(t, err)
@@ -280,7 +261,7 @@ func TestCreateClient(t *testing.T) {
 	})
 }
 
-func assertUser(t *testing.T, user *models.User, username, role string, ) {
+func assertUser(t *testing.T, user *rentals.User, username, role string, ) {
 	tst.Assert(t, user.Username == username,
 		fmt.Sprintf("Expected username %s, got %s", username, user.Username))
 
@@ -290,7 +271,7 @@ func assertUser(t *testing.T, user *models.User, username, role string, ) {
 
 // Creates a user. Returns its id.
 func createUser(username, pwd, role string, db *gorm.DB) (uint, error) {
-	userResource := &rentals.UserResource{Db: db}
+	userResource := &transport.UserResource{Db: db}
 
 	userData := fmt.Sprintf(`{"username": "%s", "password": "%s", "role": "%s"}`,
 		username, pwd, role)

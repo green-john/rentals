@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"rentals/http"
+	"rentals/transport"
 )
 
 func main() {
@@ -25,7 +25,7 @@ func runServer() {
 		testing = false
 	}
 
-	app, err := http.NewApp(addr, testing)
+	app, err := transport.NewApp(addr, testing)
 
 	if err != nil {
 		panic(err)

@@ -7,7 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	rentals "rentals/http"
+	"rentals"
+	"rentals/transport"
 	"rentals/tst"
 	"sync"
 	"testing"
@@ -26,32 +27,47 @@ type apartmentResponse struct {
 	Available        bool    `json:"available"`
 }
 
-//func newServer(t *testing.T, addr string) *rentals.Server {
-//	srv, err := rentals.New
-//}
+func newServer(t *testing.T) (*transport.Server, func()) {
+	t.Helper()
+
+	db, err := rentals.ConnectToDB(true)
+	tst.Ok(t, err)
+
+	authN := transport.NewDbAuthnService(db)
+	authZ := transport.NewAuthzService()
+
+	srv, err := transport.NewServer(db, authN, authZ)
+	tst.Ok(t, err)
+
+	return srv, func() {
+		db.DropTableIfExists(rentals.DbModels...)
+	}
+}
+
+func startServer(wg sync.WaitGroup, addr string, srv *transport.Server) {
+	go func() {
+		defer wg.Done()
+		log.Printf("[ERROR] %s", http.ListenAndServe(addr, srv.Router))
+	}()
+}
 
 func TestCRUDApartment(t *testing.T) {
 	var wg sync.WaitGroup
 	const addr = "localhost:8083"
-	app, err := rentals.NewApp(addr, true)
-	tst.Ok(t, err)
-	tst.Ok(t, app.Setup())
+	srv, clean := newServer(t)
+	defer clean()
 
 	// Make sure we delete all things after we are done
-	defer app.DropDB()
 	serverUrl := fmt.Sprintf("http://%s", addr)
 
 	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		log.Printf("[ERROR] %s", app.ServeHTTP())
-	}()
+	startServer(wg, addr, srv)
 
-	_, err = createUser("admin", "admin", "admin", app.Server.Db)
+	_, err := createUser("admin", "admin", "admin", srv.Db)
 	tst.Ok(t, err)
-	realtorId, err := createUser("realtor", "realtor", "realtor", app.Server.Db)
+	realtorId, err := createUser("realtor", "realtor", "realtor", srv.Db)
 	tst.Ok(t, err)
-	_, err = createUser("client", "client", "client", app.Server.Db)
+	_, err = createUser("client", "client", "client", srv.Db)
 	tst.Ok(t, err)
 
 	t.Run("CRUD apartment no auth, fail", func(t *testing.T) {
@@ -181,28 +197,22 @@ func TestCRUDApartment(t *testing.T) {
 func TestReadAllApartmentsAndSearch(t *testing.T) {
 	var wg sync.WaitGroup
 	const addr = "localhost:8083"
-	app, err := rentals.NewApp(addr, true)
-	tst.Ok(t, err)
-	tst.Ok(t, app.Setup())
+	srv, clean := newServer(t)
+	defer clean()
 
-	// Make sure we delete all things after we are done
-	defer app.DropDB()
 	serverUrl := fmt.Sprintf("http://%s", addr)
 
 	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		log.Printf("[ERROR] %s", app.ServeHTTP())
-	}()
+	startServer(wg, addr, srv)
 
-	_, err = createUser("admin", "admin", "admin", app.Server.Db)
+	_, err := createUser("admin", "admin", "admin", srv.Db)
 	tst.Ok(t, err)
-	realtorId, err := createUser("realtor", "realtor", "realtor", app.Server.Db)
+	realtorId, err := createUser("realtor", "realtor", "realtor", srv.Db)
 	tst.Ok(t, err)
-	_, err = createUser("client", "client", "client", app.Server.Db)
+	_, err = createUser("client", "client", "client", srv.Db)
 	tst.Ok(t, err)
 
-	create10Apartments(t, realtorId, app.Server.Db)
+	create10Apartments(t, realtorId, srv.Db)
 
 	t.Run("Read all apartments client, realtor, admin, success", func(t *testing.T) {
 		for _, user := range []string{"client", "realtor", "admin"} {
@@ -280,7 +290,7 @@ func create10Apartments(t *testing.T, realtorId uint, db *gorm.DB) {
 }
 
 func createApartment(name, desc string, roomCount int, realtorId uint, db *gorm.DB) (uint, error) {
-	apartmentResource := &rentals.ApartmentResource{Db: db}
+	apartmentResource := &transport.ApartmentResource{Db: db}
 
 	apartmentData := newApartmentPayload(name, desc, roomCount, realtorId)
 	jsonData, err := apartmentResource.Create([]byte(apartmentData))
