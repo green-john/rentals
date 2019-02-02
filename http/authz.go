@@ -1,4 +1,4 @@
-package roles
+package http
 
 type Permission uint
 
@@ -9,7 +9,7 @@ const (
 	Delete
 )
 
-type Authorizer struct {
+type AuthzService struct {
 	// This is a map of roles to permissions per resource
 	//
 	//		role1 -> {
@@ -24,7 +24,7 @@ type Authorizer struct {
 	perm map[string]map[string][]Permission
 }
 
-func (a *Authorizer) AddPermission(role string, resource string, permissions ...Permission) {
+func (a *AuthzService) AddPermission(role string, resource string, permissions ...Permission) {
 	if _, ok := a.perm[role]; !ok {
 		a.perm[role] = make(map[string][]Permission)
 	}
@@ -34,13 +34,13 @@ func (a *Authorizer) AddPermission(role string, resource string, permissions ...
 	}
 
 	for _, p := range permissions {
-		if !contains(a.perm[role][resource], p) {
+		if !containsPerm(a.perm[role][resource], p) {
 			a.perm[role][resource] = append(a.perm[role][resource], p)
 		}
 	}
 }
 
-func (a *Authorizer) Allowed(role string, resource string, permission Permission) bool {
+func (a *AuthzService) Allowed(role string, resource string, permission Permission) bool {
 	// If role does not exist, return false
 	if _, ok := a.perm[role]; !ok {
 		return false
@@ -51,15 +51,15 @@ func (a *Authorizer) Allowed(role string, resource string, permission Permission
 		return false
 	}
 
-	return contains(a.perm[role][resource], permission)
+	return containsPerm(a.perm[role][resource], permission)
 }
 
-func NewAuthorizer() *Authorizer {
+func NewAuthzService() *AuthzService {
 	p := make(map[string]map[string][]Permission)
-	return &Authorizer{p}
+	return &AuthzService{p}
 }
 
-func contains(permissions []Permission, perm Permission) bool {
+func containsPerm(permissions []Permission, perm Permission) bool {
 	for _, elt := range permissions {
 		if elt == perm {
 			return true

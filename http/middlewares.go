@@ -2,7 +2,6 @@ package http
 
 import (
 	"net/http"
-	"rentals/roles"
 	"strings"
 )
 
@@ -54,12 +53,12 @@ func (s *Server) ContentTypeJsonMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func getOp(method string) roles.Permission {
-	meth2Perm := make(map[string]roles.Permission)
-	meth2Perm["POST"] = roles.Create
-	meth2Perm["GET"] = roles.Read
-	meth2Perm["PATCH"] = roles.Update
-	meth2Perm["DELETE"] = roles.Delete
+func getOp(method string) Permission {
+	meth2Perm := make(map[string]Permission)
+	meth2Perm["POST"] = Create
+	meth2Perm["GET"] = Read
+	meth2Perm["PATCH"] = Update
+	meth2Perm["DELETE"] = Delete
 
 	return meth2Perm[strings.ToUpper(method)]
 }

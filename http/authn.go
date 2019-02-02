@@ -14,11 +14,11 @@ import (
 // Error thrown when a login fails
 var LoginError = errors.New("incorrect username/password")
 
-// Authenticator is the interface that should be implemented when
+// AuthnService is the interface that should be implemented when
 // designing an auth scheme that depends on a stateful bearer token
 // Note: It is NOT safe to use this for stateless authentications schemes
 // such as Jose/JWT/Macaroon.
-type Authenticator interface {
+type AuthnService interface {
 	// Login tries to login a user given its username and password.
 	// logging in a user entails checking whether the info is correct
 	// and in case it is, generate a token that can be used
@@ -32,12 +32,12 @@ type Authenticator interface {
 	Verify(token string) *rentals.User
 }
 
-// Implementation of a Authenticator using a relational database
-type dbAuthenticator struct {
+// Implementation of a AuthnService using a relational database
+type dbAuthnService struct {
 	Db *gorm.DB
 }
 
-func (a *dbAuthenticator) Login(username, password string) (string, error) {
+func (a *dbAuthnService) Login(username, password string) (string, error) {
 	var user rentals.User
 	a.Db.Where("username = ?", username).First(&user)
 
@@ -68,7 +68,7 @@ func (a *dbAuthenticator) Login(username, password string) (string, error) {
 	return token, nil
 }
 
-func (a *dbAuthenticator) findExistingUserSession(user rentals.User) *rentals.UserSession {
+func (a *dbAuthnService) findExistingUserSession(user rentals.User) *rentals.UserSession {
 	var session rentals.UserSession
 
 	a.Db.Where("user_id = ?", user.ID).First(&session)
@@ -95,7 +95,7 @@ func generateToken() string {
 	return fmt.Sprintf("%X", ret)
 }
 
-func (a *dbAuthenticator) Verify(token string) *rentals.User {
+func (a *dbAuthnService) Verify(token string) *rentals.User {
 	var userSession rentals.UserSession
 	a.Db.Where("token = ?", token).First(&userSession)
 
@@ -110,6 +110,6 @@ func (a *dbAuthenticator) Verify(token string) *rentals.User {
 }
 
 // Creates a new database authenticator
-func NewDbAuthenticator(db *gorm.DB) *dbAuthenticator {
-	return &dbAuthenticator{Db: db}
+func NewDbAuthnService(db *gorm.DB) *dbAuthnService {
+	return &dbAuthnService{Db: db}
 }

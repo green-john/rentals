@@ -1,4 +1,4 @@
-package roles
+package http
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 
 func TestOnlyReadForOneRole(t *testing.T) {
 	// Arrange
-	authorizer := NewAuthorizer()
+	authorizer := NewAuthzService()
 	authorizer.AddPermission("client", "user", Read)
 
 	// Act & Assert
@@ -18,7 +18,7 @@ func TestOnlyReadForOneRole(t *testing.T) {
 
 func TestCreateReadTwoRoles(t *testing.T) {
 	// Arrange
-	authorizer := NewAuthorizer()
+	authorizer := NewAuthzService()
 	authorizer.AddPermission("client", "user", Read)
 	authorizer.AddPermission("realtor", "user", Create, Read, Update)
 
@@ -36,7 +36,7 @@ func TestCreateReadTwoRoles(t *testing.T) {
 
 func TestTwoResources(t *testing.T) {
 	// Arrange
-	authorizer := NewAuthorizer()
+	authorizer := NewAuthzService()
 	authorizer.AddPermission("client", "user", Read)
 	authorizer.AddPermission("client", "loser", Create)
 

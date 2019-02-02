@@ -8,15 +8,14 @@ import (
 	"net/http"
 	"os"
 	"rentals"
-	"rentals/roles"
 	"time"
 )
 
 type Server struct {
 	Db          *gorm.DB
 	Router      *mux.Router
-	AuthN       Authenticator
-	AuthZ       *roles.Authorizer
+	AuthN       AuthnService
+	AuthZ       *AuthzService
 	Initialized bool
 }
 
@@ -78,8 +77,20 @@ func (s *Server) ServeHTTP(addr string) error {
 }
 
 func (s *Server) setupAuthorization() {
-	s.AuthZ.AddPermission("admin", "users", roles.Create, roles.Read, roles.Update, roles.Delete)
-	s.AuthZ.AddPermission("admin", "apartments", roles.Create, roles.Read, roles.Update, roles.Delete)
-	s.AuthZ.AddPermission("realtor", "apartments", roles.Create, roles.Read, roles.Update, roles.Delete)
-	s.AuthZ.AddPermission("client", "apartments", roles.Read)
+	s.AuthZ.AddPermission("admin", "users", Create, Read, Update, Delete)
+	s.AuthZ.AddPermission("admin", "apartments", Create, Read, Update, Delete)
+	s.AuthZ.AddPermission("realtor", "apartments", Create, Read, Update, Delete)
+	s.AuthZ.AddPermission("client", "apartments", Read)
+}
+
+func NewServer(db *gorm.DB, authNService AuthnService, authZService *AuthzService) (*Server, error) {
+	router := mux.NewRouter()
+
+	return &Server{
+		Db:          db,
+		Router:      router,
+		AuthN:       authNService,
+		AuthZ:       authZService,
+		Initialized: false,
+	}, nil
 }

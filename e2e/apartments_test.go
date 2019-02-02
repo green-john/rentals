@@ -26,6 +26,10 @@ type apartmentResponse struct {
 	Available        bool    `json:"available"`
 }
 
+//func newServer(t *testing.T, addr string) *rentals.Server {
+//	srv, err := rentals.New
+//}
+
 func TestCRUDApartment(t *testing.T) {
 	var wg sync.WaitGroup
 	const addr = "localhost:8083"

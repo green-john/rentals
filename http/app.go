@@ -2,9 +2,7 @@ package http
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
 	"rentals"
-	"rentals/roles"
 )
 
 type App struct {
@@ -31,16 +29,12 @@ func NewApp(addr string, testing bool) (*App, error) {
 		return nil, fmt.Errorf("[NewApp] error in ConnectToDB(): %v", err)
 	}
 
-	router := mux.NewRouter()
-	authN := NewDbAuthenticator(db)
-	authZ := roles.NewAuthorizer()
+	authN := NewDbAuthnService(db)
+	authZ := NewAuthzService()
 
-	server := &Server{
-		Db:          db,
-		Router:      router,
-		AuthN:       authN,
-		AuthZ:       authZ,
-		Initialized: false,
+	server, err := NewServer(db, authN, authZ)
+	if err != nil {
+		return nil, err
 	}
 
 	app := &App{
