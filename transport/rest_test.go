@@ -25,10 +25,6 @@ func NewPageResource() *PageResource {
 	return &PageResource{requestsPerMethod: reqCount}
 }
 
-func (PageResource) Name() string {
-	return "pages"
-}
-
 func (p *PageResource) Create(jsonData []byte) ([]byte, error) {
 	p.requestsPerMethod["POST"] += 1
 	return jsonData, nil
@@ -60,7 +56,7 @@ func TestCreateRoutes(t *testing.T) {
 	myResource := NewPageResource()
 
 	// Act
-	CreateRoutes(myResource, router)
+	CreateRoutes("pages", myResource, router)
 
 	res := makeMockRequest(t, router, "/pages", "POST", "")
 	tst.Assert(t, res.Code == http.StatusCreated, fmt.Sprintf("Response not ok: %d", res.Code))

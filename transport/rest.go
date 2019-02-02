@@ -12,9 +12,6 @@ import (
 //
 // See `CreateRoutes`
 type Resource interface {
-	// Name of the resource. To be used in the URL
-	Name() string
-
 	// Create a new resource given the json data. Returns
 	// the created object or an error
 	Create(jsonData []byte) ([]byte, error)
@@ -43,14 +40,14 @@ type Resource interface {
 // GET -> Read
 // PATCH -> Update
 // DELETE -> Delete
-func CreateRoutes(resource Resource, router *mux.Router) {
+func CreateRoutes(basepath string, resource Resource, router *mux.Router) {
 	getHandler := handleGet(resource)
 	getAllHandler := handleGetAll(resource)
 	postHandler := handlePost(resource)
 	patchHandler := handlePatch(resource)
 	deleteHandler := handleDelete(resource)
 
-	url := fmt.Sprintf("/%s", resource.Name())
+	url := fmt.Sprintf("/%s", basepath)
 	urlWithId := fmt.Sprintf("%s/{id:[0-9]+}", url)
 
 	router.HandleFunc(url, postHandler).Methods("POST")

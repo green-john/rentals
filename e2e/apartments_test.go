@@ -32,6 +32,7 @@ func newServer(t *testing.T) (*transport.Server, func()) {
 
 	db, err := rentals.ConnectToDB(true)
 	tst.Ok(t, err)
+	db.AutoMigrate(rentals.DbModels...)
 
 	authN := transport.NewDbAuthnService(db)
 	authZ := transport.NewAuthzService()
