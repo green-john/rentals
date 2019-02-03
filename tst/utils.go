@@ -16,7 +16,7 @@ func Ok(t *testing.T, err error) {
 	}
 }
 
-func Assert(t *testing.T, expr bool, errorMsg string) {
+func True(t *testing.T, expr bool, errorMsg string) {
 	t.Helper()
 
 	if !expr {

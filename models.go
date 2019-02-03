@@ -75,6 +75,7 @@ type Apartment struct {
 	Available bool `json:"available"`
 }
 
+
 func (uid) UnmarshalJSON([]byte) error {
 	return nil
 }

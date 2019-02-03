@@ -14,7 +14,7 @@ func TestEncryptPassword(t *testing.T) {
 	encrypted, err := EncryptPassword(clearPass)
 	tst.Ok(t, err)
 
-	// Assert
+	// True
 	err = CheckPassword(encrypted, "password")
-	tst.Assert(t, err == nil, fmt.Sprintf("Unexpected error %v", err))
+	tst.True(t, err == nil, fmt.Sprintf("Unexpected error %v", err))
 }

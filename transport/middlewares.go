@@ -4,6 +4,7 @@ import (
 	"github.com/gorilla/handlers"
 	"net/http"
 	"os"
+	"rentals/services"
 	"strings"
 )
 
@@ -24,7 +25,7 @@ func (s *Server) AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		token := authHeader[0]
-		user := s.AuthN.Verify(token)
+		user := s.authn.Verify(token)
 
 		if user == nil {
 			respond(w, http.StatusUnauthorized, "Not allowed")
@@ -38,7 +39,7 @@ func (s *Server) AuthMiddleware(next http.Handler) http.Handler {
 		if requestedResource != "" {
 			op := getOp(r.Method)
 
-			if !s.AuthZ.Allowed(user.Role, requestedResource, op) {
+			if !s.authz.Allowed(user.Role, requestedResource, op) {
 				respond(w, http.StatusForbidden, "Not allowed")
 				return
 			}
@@ -75,12 +76,12 @@ func (s *Server) CORSMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func getOp(method string) Permission {
-	meth2Perm := make(map[string]Permission)
-	meth2Perm["POST"] = Create
-	meth2Perm["GET"] = Read
-	meth2Perm["PATCH"] = Update
-	meth2Perm["DELETE"] = Delete
+func getOp(method string) services.Permission {
+	meth2Perm := make(map[string]services.Permission)
+	meth2Perm["POST"] = services.Create
+	meth2Perm["GET"] = services.Read
+	meth2Perm["PATCH"] = services.Update
+	meth2Perm["DELETE"] = services.Delete
 
 	return meth2Perm[strings.ToUpper(method)]
 }

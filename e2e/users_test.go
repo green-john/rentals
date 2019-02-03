@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"rentals"
-	"rentals/transport"
+	"rentals/services"
 	"rentals/tst"
 	"sync"
 	"testing"
@@ -37,30 +37,30 @@ func TestCRUDUsers(t *testing.T) {
 		// Create
 		res, err := tst.MakeRequest("POST", serverUrl+"/users", "", payload)
 		tst.Ok(t, err)
-		tst.Assert(t, res.StatusCode == http.StatusUnauthorized,
+		tst.True(t, res.StatusCode == http.StatusUnauthorized,
 			fmt.Sprintf("Expected 401, got %d", res.StatusCode))
 
 		// Read
 		res, err = tst.MakeRequest("GET", serverUrl+"/users", "", payload)
 		tst.Ok(t, err)
-		tst.Assert(t, res.StatusCode == http.StatusUnauthorized,
+		tst.True(t, res.StatusCode == http.StatusUnauthorized,
 			fmt.Sprintf("Expected 401, got %d", res.StatusCode))
 
 		res, err = tst.MakeRequest("GET", serverUrl+"/users/1", "", payload)
 		tst.Ok(t, err)
-		tst.Assert(t, res.StatusCode == http.StatusUnauthorized,
+		tst.True(t, res.StatusCode == http.StatusUnauthorized,
 			fmt.Sprintf("Expected 401, got %d", res.StatusCode))
 
 		// Update
 		res, err = tst.MakeRequest("PATCH", serverUrl+"/users/1", "", payload)
 		tst.Ok(t, err)
-		tst.Assert(t, res.StatusCode == http.StatusUnauthorized,
+		tst.True(t, res.StatusCode == http.StatusUnauthorized,
 			fmt.Sprintf("Expected 401, got %d", res.StatusCode))
 
 		// Delete
 		res, err = tst.MakeRequest("DELETE", serverUrl+"/users/1", "", payload)
 		tst.Ok(t, err)
-		tst.Assert(t, res.StatusCode == http.StatusUnauthorized,
+		tst.True(t, res.StatusCode == http.StatusUnauthorized,
 			fmt.Sprintf("Expected 401, got %d", res.StatusCode))
 	})
 
@@ -75,30 +75,30 @@ func TestCRUDUsers(t *testing.T) {
 			// Create
 			res, err := tst.MakeRequest("POST", serverUrl+"/users", token, payload)
 			tst.Ok(t, err)
-			tst.Assert(t, res.StatusCode == http.StatusForbidden,
+			tst.True(t, res.StatusCode == http.StatusForbidden,
 				fmt.Sprintf("Expected 403, got %d", res.StatusCode))
 
 			// Read
 			res, err = tst.MakeRequest("GET", serverUrl+"/users", token, payload)
 			tst.Ok(t, err)
-			tst.Assert(t, res.StatusCode == http.StatusForbidden,
+			tst.True(t, res.StatusCode == http.StatusForbidden,
 				fmt.Sprintf("Expected 403, got %d", res.StatusCode))
 
 			res, err = tst.MakeRequest("GET", serverUrl+"/users/1", token, payload)
 			tst.Ok(t, err)
-			tst.Assert(t, res.StatusCode == http.StatusForbidden,
+			tst.True(t, res.StatusCode == http.StatusForbidden,
 				fmt.Sprintf("Expected 403, got %d", res.StatusCode))
 
 			// Update
 			res, err = tst.MakeRequest("PATCH", serverUrl+"/users/1", token, payload)
 			tst.Ok(t, err)
-			tst.Assert(t, res.StatusCode == http.StatusForbidden,
+			tst.True(t, res.StatusCode == http.StatusForbidden,
 				fmt.Sprintf("Expected 403, got %d", res.StatusCode))
 
 			// Delete
 			res, err = tst.MakeRequest("DELETE", serverUrl+"/users/1", token, payload)
 			tst.Ok(t, err)
-			tst.Assert(t, res.StatusCode == http.StatusForbidden,
+			tst.True(t, res.StatusCode == http.StatusForbidden,
 				fmt.Sprintf("Expected 403, got %d", res.StatusCode))
 		}
 	})
@@ -113,61 +113,61 @@ func TestCRUDUsers(t *testing.T) {
 		// Create
 		res, err := tst.MakeRequest("POST", serverUrl+"/users", token, payload)
 		tst.Ok(t, err)
-		tst.Assert(t, res.StatusCode == http.StatusCreated, fmt.Sprintf("Expected 201 got %d", res.StatusCode))
+		tst.True(t, res.StatusCode == http.StatusCreated, fmt.Sprintf("Expected 201 got %d", res.StatusCode))
 		rawContent, err := ioutil.ReadAll(res.Body)
 		tst.Ok(t, err)
 
 		var usrRes userResponse
 		err = json.Unmarshal(rawContent, &usrRes)
-		tst.Assert(t, usrRes.Username == "john",
+		tst.True(t, usrRes.Username == "john",
 			fmt.Sprintf("Expected name john, got %s", usrRes.Username))
-		tst.Assert(t, usrRes.Role == "client",
+		tst.True(t, usrRes.Role == "client",
 			fmt.Sprintf("Expected role client, got %s", usrRes.Role))
-		tst.Assert(t, usrRes.ID != 0, "Id must be different than 0")
+		tst.True(t, usrRes.ID != 0, "Id must be different than 0")
 
 		// Read
 		userUrl := fmt.Sprintf("%s/users/%d", serverUrl, usrRes.ID)
 		res, err = tst.MakeRequest("GET", userUrl, token, payload)
 		tst.Ok(t, err)
-		tst.Assert(t, res.StatusCode == http.StatusOK, fmt.Sprintf("Expected 200 got %d", res.StatusCode))
+		tst.True(t, res.StatusCode == http.StatusOK, fmt.Sprintf("Expected 200 got %d", res.StatusCode))
 		rawContent, err = ioutil.ReadAll(res.Body)
 		tst.Ok(t, err)
 
 		var retUser userResponse
 		err = json.Unmarshal(rawContent, &retUser)
-		tst.Assert(t, retUser.Username == usrRes.Username,
+		tst.True(t, retUser.Username == usrRes.Username,
 			fmt.Sprintf("Expected name %s, got %s", usrRes.Username, retUser.Username))
-		tst.Assert(t, retUser.Role == usrRes.Role,
+		tst.True(t, retUser.Role == usrRes.Role,
 			fmt.Sprintf("Expected role %s, got %s", usrRes.Role, retUser.Role))
-		tst.Assert(t, retUser.ID == usrRes.ID,
+		tst.True(t, retUser.ID == usrRes.ID,
 			fmt.Sprintf("Expected id %d, got %d", usrRes.ID, retUser.ID))
 
 		// Update
 		payload = []byte(`{"id":100, "username": "newusr", "role": "realtor"}`)
 		res, err = tst.MakeRequest("PATCH", userUrl, token, payload)
 		tst.Ok(t, err)
-		tst.Assert(t, res.StatusCode == http.StatusOK, fmt.Sprintf("Expected 200 got %d", res.StatusCode))
+		tst.True(t, res.StatusCode == http.StatusOK, fmt.Sprintf("Expected 200 got %d", res.StatusCode))
 		rawContent, err = ioutil.ReadAll(res.Body)
 		tst.Ok(t, err)
 
 		var updUser userResponse
 		err = json.Unmarshal(rawContent, &updUser)
-		tst.Assert(t, updUser.Username == "john",
+		tst.True(t, updUser.Username == "john",
 			fmt.Sprintf("Expected name john, got %s", updUser.Username))
-		tst.Assert(t, updUser.Role == "realtor",
+		tst.True(t, updUser.Role == "realtor",
 			fmt.Sprintf("Expected role realtor, got %s", updUser.Role))
-		tst.Assert(t, updUser.ID == usrRes.ID,
+		tst.True(t, updUser.ID == usrRes.ID,
 			fmt.Sprintf("Expected id %d, got %d", usrRes.ID, updUser.ID))
 
 		// Delete
 		res, err = tst.MakeRequest("DELETE", userUrl, token, []byte(""))
 		tst.Ok(t, err)
-		tst.Assert(t, res.StatusCode == http.StatusNoContent,
+		tst.True(t, res.StatusCode == http.StatusNoContent,
 			fmt.Sprintf("Expected 204, got %d", res.StatusCode))
 
 		res, err = tst.MakeRequest("GET", userUrl, token, []byte(""))
 		tst.Ok(t, err)
-		tst.Assert(t, res.StatusCode == http.StatusNotFound,
+		tst.True(t, res.StatusCode == http.StatusNotFound,
 			fmt.Sprintf("Expected 404, got %d", res.StatusCode))
 	})
 }
@@ -192,7 +192,7 @@ func TestFetchOwnUserData(t *testing.T) {
 
 	t.Run("Can't create user with same username", func(t *testing.T) {
 		_, err := createUser("admin", "admin", "admin", srv.Db)
-		tst.Assert(t, err != nil, "Expected error, got success")
+		tst.True(t, err != nil, "Expected error, got success")
 	})
 
 	t.Run("Read profile not logged in", func(t *testing.T) {
@@ -200,8 +200,8 @@ func TestFetchOwnUserData(t *testing.T) {
 		res, err := tst.MakeRequest("GET", serverUrl+"/profile", "", []byte(""))
 		tst.Ok(t, err)
 
-		// Assert
-		tst.Assert(t, res.StatusCode == http.StatusUnauthorized,
+		// True
+		tst.True(t, res.StatusCode == http.StatusUnauthorized,
 			fmt.Sprintf("Expected 401, got %d", res.StatusCode))
 	})
 
@@ -214,8 +214,8 @@ func TestFetchOwnUserData(t *testing.T) {
 			res, err := tst.MakeRequest("GET", serverUrl+"/profile", token, []byte(""))
 			tst.Ok(t, err)
 
-			// Assert
-			tst.Assert(t, res.StatusCode == http.StatusOK,
+			// True
+			tst.True(t, res.StatusCode == http.StatusOK,
 				fmt.Sprintf("Expected 200, got %d", res.StatusCode))
 
 			var returnedUser rentals.User
@@ -248,8 +248,8 @@ func TestCreateClient(t *testing.T) {
 		res, err := tst.MakeRequest("POST", serverUrl+"/newClient", "", payload)
 		tst.Ok(t, err)
 
-		// Assert
-		tst.Assert(t, res.StatusCode == http.StatusCreated,
+		// True
+		tst.True(t, res.StatusCode == http.StatusCreated,
 			fmt.Sprintf("Expected 201, got %d", res.StatusCode))
 
 		var returnedUser rentals.User
@@ -262,32 +262,25 @@ func TestCreateClient(t *testing.T) {
 }
 
 func assertUser(t *testing.T, user *rentals.User, username, role string, ) {
-	tst.Assert(t, user.Username == username,
+	tst.True(t, user.Username == username,
 		fmt.Sprintf("Expected username %s, got %s", username, user.Username))
 
-	tst.Assert(t, user.Role == role,
+	tst.True(t, user.Role == role,
 		fmt.Sprintf("Expected role %s, got %s", role, user.Role))
 }
 
 // Creates a user. Returns its id.
 func createUser(username, pwd, role string, db *gorm.DB) (uint, error) {
-	userResource := &transport.UserResource{Db: db}
+	userService := services.NewDbUserService(db)
 
-	userData := fmt.Sprintf(`{"username": "%s", "password": "%s", "role": "%s"}`,
-		username, pwd, role)
-	jsonData, err := userResource.Create([]byte(userData))
+	result, err := userService.Create(services.UserCreateInput{
+		Username: username,
+		Password: pwd,
+		Role:     role,
+	})
 	if err != nil {
 		return 0, err
 	}
 
-	var userId struct {
-		Id uint `json:"id"`
-	}
-
-	err = json.Unmarshal(jsonData, &userId)
-	if err != nil {
-		return 0, err
-	}
-
-	return userId.Id, nil
+	return uint(result.ID), nil
 }

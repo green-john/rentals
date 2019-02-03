@@ -41,7 +41,7 @@ func TestFindApartment(t *testing.T) {
 			//tst.Ok(t, err)
 
 			for idx, apt := range res.Apartments {
-				tst.Assert(t, apt.Name == elt.resultIds[idx],
+				tst.True(t, apt.Name == elt.resultIds[idx],
 					fmt.Sprintf("Expected %s, got %s", elt.resultIds[idx], apt.Name))
 			}
 		})

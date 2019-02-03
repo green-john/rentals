@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"rentals"
+	"rentals/services"
 	"rentals/transport"
 )
 
@@ -33,10 +34,12 @@ func runServer() {
 
 	db.AutoMigrate(rentals.DbModels...)
 
-	authN := transport.NewDbAuthnService(db)
-	authZ := transport.NewAuthzService()
+	authN := services.NewDbAuthnService(db)
+	authZ := services.NewAuthzService()
+	apartmentsSrv := services.NewDbApartmentService(db)
+	userService := services.NewDbUserService(db)
 
-	srv, err := transport.NewServer(db, authN, authZ)
+	srv, err := transport.NewServer(db, authN, authZ, apartmentsSrv, userService)
 	if err != nil {
 		log.Fatal(err)
 	}

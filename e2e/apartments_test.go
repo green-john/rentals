@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"rentals"
+	"rentals/services"
 	"rentals/transport"
 	"rentals/tst"
 	"sync"
@@ -34,10 +35,12 @@ func newServer(t *testing.T) (*transport.Server, func()) {
 	tst.Ok(t, err)
 	db.AutoMigrate(rentals.DbModels...)
 
-	authN := transport.NewDbAuthnService(db)
-	authZ := transport.NewAuthzService()
+	authN := services.NewDbAuthnService(db)
+	authZ := services.NewAuthzService()
+	apatService := services.NewDbApartmentService(db)
+	usrService := services.NewDbUserService(db)
 
-	srv, err := transport.NewServer(db, authN, authZ)
+	srv, err := transport.NewServer(db, authN, authZ, apatService, usrService)
 	tst.Ok(t, err)
 
 	return srv, func() {
@@ -75,27 +78,27 @@ func TestCRUDApartment(t *testing.T) {
 		res, err := tst.MakeRequest("POST", serverUrl+"/apartments", "", []byte(""))
 		tst.Ok(t, err)
 
-		tst.Assert(t, res.StatusCode == http.StatusUnauthorized,
+		tst.True(t, res.StatusCode == http.StatusUnauthorized,
 			fmt.Sprintf("Expected 401, got %d", res.StatusCode))
 
 		for _, url := range []string{"/apartments", "/apartments/2"} {
 			res, err := tst.MakeRequest("GET", serverUrl+url, "", []byte(""))
 			tst.Ok(t, err)
 
-			tst.Assert(t, res.StatusCode == http.StatusUnauthorized,
+			tst.True(t, res.StatusCode == http.StatusUnauthorized,
 				fmt.Sprintf("Expected 401, got %d", res.StatusCode))
 		}
 
 		res, err = tst.MakeRequest("PATCH", serverUrl+"/apartments/1", "", []byte(""))
 		tst.Ok(t, err)
 
-		tst.Assert(t, res.StatusCode == http.StatusUnauthorized,
+		tst.True(t, res.StatusCode == http.StatusUnauthorized,
 			fmt.Sprintf("Expected 401, got %d", res.StatusCode))
 
 		res, err = tst.MakeRequest("DELETE", serverUrl+"/apartments/1", "", []byte(""))
 		tst.Ok(t, err)
 
-		tst.Assert(t, res.StatusCode == http.StatusUnauthorized,
+		tst.True(t, res.StatusCode == http.StatusUnauthorized,
 			fmt.Sprintf("Expected 401, got %d", res.StatusCode))
 	})
 
@@ -107,19 +110,19 @@ func TestCRUDApartment(t *testing.T) {
 		res, err := tst.MakeRequest("POST", serverUrl+"/apartments", token, newApartmentPayload)
 		tst.Ok(t, err)
 
-		tst.Assert(t, res.StatusCode == http.StatusForbidden,
+		tst.True(t, res.StatusCode == http.StatusForbidden,
 			fmt.Sprintf("Expected 403 got %d", res.StatusCode))
 
 		res, err = tst.MakeRequest("PATCH", serverUrl+"/apartments/1", token, newApartmentPayload)
 		tst.Ok(t, err)
 
-		tst.Assert(t, res.StatusCode == http.StatusForbidden,
+		tst.True(t, res.StatusCode == http.StatusForbidden,
 			fmt.Sprintf("Expected 403 got %d", res.StatusCode))
 
 		res, err = tst.MakeRequest("DELETE", serverUrl+"/apartments/1", token, newApartmentPayload)
 		tst.Ok(t, err)
 
-		tst.Assert(t, res.StatusCode == http.StatusForbidden,
+		tst.True(t, res.StatusCode == http.StatusForbidden,
 			fmt.Sprintf("Expected 403 got %d", res.StatusCode))
 	})
 
@@ -134,24 +137,24 @@ func TestCRUDApartment(t *testing.T) {
 			res, err := tst.MakeRequest("POST", serverUrl+"/apartments", token, payload)
 			tst.Ok(t, err)
 
-			tst.Assert(t, res.StatusCode == http.StatusCreated, fmt.Sprintf("Expected 201 got %d", res.StatusCode))
+			tst.True(t, res.StatusCode == http.StatusCreated, fmt.Sprintf("Expected 201 got %d", res.StatusCode))
 			rawContent, err := ioutil.ReadAll(res.Body)
 			tst.Ok(t, err)
 
 			var aptRes apartmentResponse
 			err = json.Unmarshal(rawContent, &aptRes)
 
-			tst.Assert(t, aptRes.ID >= 1, "Expected id greater than 0")
-			tst.Assert(t, aptRes.Name == "apt1", "Got name different name")
-			tst.Assert(t, aptRes.RealtorId == realtorId, "Got unexpected realtor")
-			tst.Assert(t, aptRes.Available, "Expected apartment to be available")
+			tst.True(t, aptRes.ID >= 1, "Expected id greater than 0")
+			tst.True(t, aptRes.Name == "apt1", "Got name different name")
+			tst.True(t, aptRes.RealtorId == realtorId, "Got unexpected realtor")
+			tst.True(t, aptRes.Available, "Expected apartment to be available")
 
 			// Read
 			apartmentUrl := fmt.Sprintf("%s/apartments/%d", serverUrl, aptRes.ID)
 			res, err = tst.MakeRequest("GET", apartmentUrl, token, []byte(""))
 			tst.Ok(t, err)
 
-			tst.Assert(t, res.StatusCode == http.StatusOK,
+			tst.True(t, res.StatusCode == http.StatusOK,
 				fmt.Sprintf("Expected 200, got %d", res.StatusCode))
 
 			var retApt apartmentResponse
@@ -159,37 +162,37 @@ func TestCRUDApartment(t *testing.T) {
 			err = decoder.Decode(&retApt)
 			tst.Ok(t, err)
 
-			tst.Assert(t, retApt.ID == aptRes.ID, fmt.Sprintf("Expected id 1, got %d", retApt.ID))
+			tst.True(t, retApt.ID == aptRes.ID, fmt.Sprintf("Expected id 1, got %d", retApt.ID))
 
 			// Update
 			newData := []byte(`{"id": 100, "name": "newName", "description": "newDesc"}`)
 			res, err = tst.MakeRequest("PATCH", apartmentUrl, token, newData)
 			tst.Ok(t, err)
 
-			tst.Assert(t, res.StatusCode == http.StatusOK,
+			tst.True(t, res.StatusCode == http.StatusOK,
 				fmt.Sprintf("Expected 200, got %d", res.StatusCode))
 
 			var updApt apartmentResponse
 			decoder = json.NewDecoder(res.Body)
 			err = decoder.Decode(&updApt)
 			tst.Ok(t, err)
-			tst.Assert(t, updApt.ID == retApt.ID,
+			tst.True(t, updApt.ID == retApt.ID,
 				fmt.Sprintf("Expected id to be %d, got %d", updApt.ID, retApt.ID))
-			tst.Assert(t, updApt.Name == "newName",
+			tst.True(t, updApt.Name == "newName",
 				fmt.Sprintf("Expected name to be newName, got %s", updApt.Name))
-			tst.Assert(t, updApt.Desc == "newDesc",
+			tst.True(t, updApt.Desc == "newDesc",
 				fmt.Sprintf("Expected name to be newDesc, got %s", updApt.Desc))
-			tst.Assert(t, updApt.FloorAreaMeters == retApt.FloorAreaMeters,
+			tst.True(t, updApt.FloorAreaMeters == retApt.FloorAreaMeters,
 				fmt.Sprintf("Expected floorArea to be %f, got %f",
 					retApt.FloorAreaMeters, updApt.FloorAreaMeters))
-			tst.Assert(t, updApt.PricePerMonthUsd == retApt.PricePerMonthUsd,
+			tst.True(t, updApt.PricePerMonthUsd == retApt.PricePerMonthUsd,
 				fmt.Sprintf("Expected pricePM to be %f, got %f",
 					retApt.PricePerMonthUsd, updApt.PricePerMonthUsd))
 
 			// Delete
 			res, err = tst.MakeRequest("DELETE", apartmentUrl, token, []byte(""))
 			tst.Ok(t, err)
-			tst.Assert(t, res.StatusCode == http.StatusNoContent,
+			tst.True(t, res.StatusCode == http.StatusNoContent,
 				fmt.Sprintf("Expected 204, got %d", res.StatusCode))
 		}
 	})
@@ -224,8 +227,8 @@ func TestReadAllApartmentsAndSearch(t *testing.T) {
 			res, err := tst.MakeRequest("GET", serverUrl+"/apartments", token, []byte(""))
 			tst.Ok(t, err)
 
-			// Assert
-			tst.Assert(t, res.StatusCode == http.StatusOK,
+			// True
+			tst.True(t, res.StatusCode == http.StatusOK,
 				fmt.Sprintf("Expected 200, got %d", res.StatusCode))
 
 			var returnedApartments []apartmentResponse
@@ -233,7 +236,7 @@ func TestReadAllApartmentsAndSearch(t *testing.T) {
 			err = decoder.Decode(&returnedApartments)
 			tst.Ok(t, err)
 
-			tst.Assert(t, len(returnedApartments) == 10,
+			tst.True(t, len(returnedApartments) == 10,
 				fmt.Sprintf("Expected 10 apartments, got %d", len(returnedApartments)))
 		}
 	})
@@ -246,8 +249,8 @@ func TestReadAllApartmentsAndSearch(t *testing.T) {
 		res, err := tst.MakeRequest("GET", serverUrl+"/apartments?roomCount=4", token, []byte(""))
 		tst.Ok(t, err)
 
-		// Assert
-		tst.Assert(t, res.StatusCode == http.StatusOK,
+		// True
+		tst.True(t, res.StatusCode == http.StatusOK,
 			fmt.Sprintf("Expected 200, got %d", res.StatusCode))
 
 		var returnedApartments []apartmentResponse
@@ -255,7 +258,7 @@ func TestReadAllApartmentsAndSearch(t *testing.T) {
 		err = decoder.Decode(&returnedApartments)
 		tst.Ok(t, err)
 
-		tst.Assert(t, len(returnedApartments) == 5,
+		tst.True(t, len(returnedApartments) == 5,
 			fmt.Sprintf("Expected 5 apartments, got %d", len(returnedApartments)))
 	})
 }
@@ -291,22 +294,24 @@ func create10Apartments(t *testing.T, realtorId uint, db *gorm.DB) {
 }
 
 func createApartment(name, desc string, roomCount int, realtorId uint, db *gorm.DB) (uint, error) {
-	apartmentResource := &transport.ApartmentResource{Db: db}
+	apartmentResource := services.NewDbApartmentService(db)
 
-	apartmentData := newApartmentPayload(name, desc, roomCount, realtorId)
-	jsonData, err := apartmentResource.Create([]byte(apartmentData))
+	output, err := apartmentResource.Create(
+		services.ApartmentCreateInput{
+			Apartment: rentals.Apartment{
+				Name:             name,
+				Desc:             desc,
+				RoomCount:        roomCount,
+				PricePerMonthUsd: 500.0,
+				Latitude:         41.761536,
+				Longitude:        12.315237,
+				RealtorId:        realtorId,
+				Available:        true,
+			},
+		})
 	if err != nil {
 		return 0, err
 	}
 
-	var apartmentId struct {
-		Id uint `json:"id"`
-	}
-
-	err = json.Unmarshal(jsonData, &apartmentId)
-	if err != nil {
-		return 0, err
-	}
-
-	return apartmentId.Id, nil
+	return uint(output.ID), nil
 }
