@@ -31,6 +31,8 @@ func runServer() {
 		log.Fatal(err)
 	}
 
+	db.AutoMigrate(rentals.DbModels...)
+
 	authN := transport.NewDbAuthnService(db)
 	authZ := transport.NewAuthzService()
 

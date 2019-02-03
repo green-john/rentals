@@ -1,6 +1,13 @@
 package transport
 
-import "reflect"
+import (
+	"bytes"
+	"encoding/json"
+	"io"
+	"log"
+	"net/http"
+	"reflect"
+)
 
 func contains(a []string, b string) bool {
 	for _, elt := range a {
@@ -20,4 +27,19 @@ func getJsonTag(v interface{}, fieldName string) string {
 	}
 
 	return field.Tag.Get("json")
+}
+
+// Responds to to the give response writer using status
+// with json
+func respond(w http.ResponseWriter, status int, data interface{}) {
+	var buffer bytes.Buffer
+	if err := json.NewEncoder(&buffer).Encode(data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(status)
+	if _, err := io.Copy(w, &buffer); err != nil {
+		log.Println("Error responding:", err)
+	}
 }

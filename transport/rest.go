@@ -151,8 +151,8 @@ func badRequestError(err error, w http.ResponseWriter) {
 	log.Printf("[ERROR] %s", err.Error())
 	switch v := err.(type) {
 	case NotFoundError:
-		ErrorResponse(w, http.StatusNotFound, v.Error())
+		respond(w, http.StatusNotFound, v.Error())
 	default:
-		ErrorResponse(w, http.StatusBadRequest, v.Error())
+		respond(w, http.StatusBadRequest, v.Error())
 	}
 }

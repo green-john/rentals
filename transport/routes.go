@@ -17,14 +17,14 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&userData)
 		if err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, "Internal Server error")
+			respond(w, http.StatusInternalServerError, "Internal Server error")
 			log.Printf("[ERROR] %v", err)
 			return
 		}
 
 		token, err := s.AuthN.Login(userData.Username, userData.Password)
 		if err != nil {
-			ErrorResponse(w, http.StatusUnauthorized, "Not allowed")
+			respond(w, http.StatusUnauthorized, "Not allowed")
 			return
 		}
 
@@ -35,7 +35,7 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 
 		jsonRes, err := json.Marshal(returnToken)
 		if err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, "Internal Server error")
+			respond(w, http.StatusInternalServerError, "Internal Server error")
 			log.Printf("[ERROR] %v", err)
 			return
 		}
@@ -51,13 +51,13 @@ func (s *Server) profileHandler() http.HandlerFunc {
 		user := s.AuthN.Verify(token)
 
 		if user == nil {
-			ErrorResponse(w, http.StatusUnauthorized, "Not allowed")
+			respond(w, http.StatusUnauthorized, "Not allowed")
 			return
 		}
 
 		jsonRes, err := json.Marshal(user)
 		if err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, "Internal Server error")
+			respond(w, http.StatusInternalServerError, "Internal Server error")
 			log.Printf("[ERROR] %v", err)
 			return
 		}
@@ -68,7 +68,7 @@ func (s *Server) profileHandler() http.HandlerFunc {
 
 func (s *Server) newClientHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var newClient struct{
+		var newClient struct {
 			Username string `json:"username"`
 			Password string `json:"password"`
 		}
@@ -78,21 +78,21 @@ func (s *Server) newClientHandler() http.HandlerFunc {
 
 		err := decoder.Decode(&newClient)
 		if err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, "Internal Server error")
+			respond(w, http.StatusInternalServerError, "Internal Server error")
 			log.Printf("[ERROR] %v", err)
 			return
 		}
 
 		user, err := createUser(newClient.Username, newClient.Password, "client", s.Db)
 		if err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, err.Error())
+			respond(w, http.StatusInternalServerError, err.Error())
 			log.Printf("[ERROR] %v", err)
 			return
 		}
 
 		jsonRes, err := json.Marshal(user)
 		if err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, "Internal Server error")
+			respond(w, http.StatusInternalServerError, "Internal Server error")
 			log.Printf("[ERROR] %v", err)
 			return
 		}
