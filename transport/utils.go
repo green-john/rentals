@@ -29,8 +29,7 @@ func getJsonTag(v interface{}, fieldName string) string {
 	return field.Tag.Get("json")
 }
 
-// Responds to to the give response writer using status
-// with json
+// Utility function to respond to http requests.
 func respond(w http.ResponseWriter, status int, data interface{}) {
 	var buffer bytes.Buffer
 	if err := json.NewEncoder(&buffer).Encode(data); err != nil {

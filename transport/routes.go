@@ -33,14 +33,7 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 		}
 		returnToken.Token = token
 
-		jsonRes, err := json.Marshal(returnToken)
-		if err != nil {
-			respond(w, http.StatusInternalServerError, "Internal Server error")
-			log.Printf("[ERROR] %v", err)
-			return
-		}
-
-		_, _ = w.Write(jsonRes)
+		respond(w, http.StatusOK, returnToken)
 	}
 }
 
@@ -54,15 +47,7 @@ func (s *Server) profileHandler() http.HandlerFunc {
 			respond(w, http.StatusUnauthorized, "Not allowed")
 			return
 		}
-
-		jsonRes, err := json.Marshal(user)
-		if err != nil {
-			respond(w, http.StatusInternalServerError, "Internal Server error")
-			log.Printf("[ERROR] %v", err)
-			return
-		}
-
-		_, _ = w.Write(jsonRes)
+		respond(w, http.StatusOK, user)
 	})
 }
 
@@ -90,14 +75,6 @@ func (s *Server) newClientHandler() http.HandlerFunc {
 			return
 		}
 
-		jsonRes, err := json.Marshal(user)
-		if err != nil {
-			respond(w, http.StatusInternalServerError, "Internal Server error")
-			log.Printf("[ERROR] %v", err)
-			return
-		}
-
-		w.WriteHeader(http.StatusCreated)
-		_, _ = w.Write(jsonRes)
+		respond(w, http.StatusCreated, user)
 	})
 }
