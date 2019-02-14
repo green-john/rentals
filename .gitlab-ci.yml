@@ -29,6 +29,8 @@ test:
 
 deploy:
   stage: deploy
+  only:
+    - master
 
   script:
     - apt-get update -qy
