@@ -1,32 +1,26 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"rentals"
 	"rentals/services"
 	"rentals/transport"
+	"strconv"
 )
 
 func main() {
-	runServer()
+	testing := flag.Bool("local", false, "runs the server with a local db")
+	port := flag.Int("port", 8083, "port to bind to")
+
+	flag.Parse()
+
+	runServer(*testing, *port)
 }
 
-func runServer() {
-	var addr string
-	port := os.Getenv("PORT")
-	if port == "" {
-		addr = "localhost:8083"
-	} else {
-		addr = fmt.Sprintf(":%s", port)
-	}
-
-	testing := true
-	if os.Getenv("RENTALS_TESTING") == "" {
-		testing = false
-	}
-
+func runServer(testing bool, port int) {
 	db, err := rentals.ConnectToDB(testing)
 	if err != nil {
 		log.Fatal(err)
@@ -44,6 +38,15 @@ func runServer() {
 		log.Fatal(err)
 	}
 
-	// Make sure we delete all things after we are done
+	portStr := os.Getenv("PORT")
+	if portStr != "" {
+		port, err = strconv.Atoi(portStr)
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "error parsing port: %s", portStr)
+			os.Exit(1)
+		}
+	}
+	addr := fmt.Sprintf(":%d", port)
+	log.Printf("[INFO] Running in %s", addr)
 	log.Printf("[ERROR] %s", srv.ServeHTTP(addr))
 }

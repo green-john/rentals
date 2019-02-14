@@ -3,4 +3,7 @@
 export RENTALS_DB_HOST=localhost
 export RENTALS_DB_NAME=rentals-test
 export RENTALS_DB_USER=juan
-./rentals-cli $1
+
+script_name=$0
+script_full_path=$(dirname "$0")
+$script_full_path/rentals-cli --local

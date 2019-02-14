@@ -2,6 +2,10 @@
 
 Manage rental properties
 
+## Install
+
+You need Go 1.11+. First do 
+
 ## Usage
 
 The application is written with a Go backend and a Javascript (vue.js) frontend.
@@ -102,6 +106,10 @@ the project as functional as possible.
 
 ## TODO
 
-- Add logging to db errors
+- Add logging to db errors (Pretty much done)
 - Find a better structure for the files. Right now there are two
-places where routes are added.
+places where routes are added. (Almost done)
+- Add ctrl+z cancellation signal.
+- Add user frontend.
+- Add some vue material library so shit looks better.
+- Figure out how to pass values dynamically.
