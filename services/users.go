@@ -35,6 +35,10 @@ type UserAllOutput struct {
 	Users []rentals.User
 }
 
+func (o *UserAllOutput) Public() interface{} {
+	return o.Users
+}
+
 type UserUpdateInput struct {
 	Id       string `json:"-"`
 	Password string `json:"password"`
@@ -50,7 +54,7 @@ type UserDeleteInput struct {
 }
 
 type UserDeleteOutput struct {
-	Message string
+	Message string `json:"message"`
 }
 
 type UserService interface {

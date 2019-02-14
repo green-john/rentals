@@ -10,7 +10,7 @@ export default {
         return $http.get('/users', {
             headers: {Authorization: $auth.getToken()}
         }).then(res => {
-            return res.data;
+            return res.data || [];
         }).catch(err => {
             if (err.response && err.response.status !== 403) {
                 throw err

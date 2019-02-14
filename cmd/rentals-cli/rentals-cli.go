@@ -35,18 +35,19 @@ func runServer(testing bool, port int) {
 
 	srv, err := transport.NewServer(db, authN, authZ, apartmentsSrv, userService)
 	if err != nil {
-		log.Fatal(err)
+		_, _ = fmt.Fprintln(os.Stderr, "error creating server")
+		os.Exit(1)
 	}
 
 	portStr := os.Getenv("PORT")
 	if portStr != "" {
 		port, err = strconv.Atoi(portStr)
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "error parsing port: %s", portStr)
+			_, _ = fmt.Fprintf(os.Stderr, "error parsing port: %s\n", portStr)
 			os.Exit(1)
 		}
 	}
 	addr := fmt.Sprintf(":%d", port)
-	log.Printf("[INFO] Running in %s", addr)
-	log.Printf("[ERROR] %s", srv.ServeHTTP(addr))
+	_, _ = fmt.Fprintf(os.Stderr, "Running in %s\n", addr)
+	_, _ = fmt.Fprintf(os.Stderr, "[ERROR] %s", srv.ServeHTTP(addr))
 }

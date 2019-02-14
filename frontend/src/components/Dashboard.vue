@@ -255,7 +255,7 @@
                 $users.getAllUsers().then(res => {
                     this.allUsers = res;
                 }).catch(err => {
-                    alert(err);
+                    console.log(err);
                 })
             },
 

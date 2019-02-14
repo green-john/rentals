@@ -64,18 +64,6 @@ var JsonTagsToFilter = map[string]string{
 	"room_count":          getJsonTag(rentals.Apartment{}, "RoomCount"),
 }
 
-//var ApartmentJsonTags = []string{
-//	getJsonTag(rentals.Apartment{}, "Name"),
-//	getJsonTag(rentals.Apartment{}, "Desc"),
-//	getJsonTag(rentals.Apartment{}, "RealtorId"),
-//	getJsonTag(rentals.Apartment{}, "FloorAreaMeters"),
-//	getJsonTag(rentals.Apartment{}, "PricePerMonthUsd"),
-//	getJsonTag(rentals.Apartment{}, "RoomCount"),
-//	getJsonTag(rentals.Apartment{}, "Latitude"),
-//	getJsonTag(rentals.Apartment{}, "Longitude"),
-//	getJsonTag(rentals.Apartment{}, "Available"),
-//}
-
 type ApartmentService interface {
 	Create(ApartmentCreateInput) (*ApartmentCreateOutput, error)
 	Read(ApartmentReadInput) (*ApartmentReadOutput, error)

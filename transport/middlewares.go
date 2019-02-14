@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"fmt"
 	"github.com/gorilla/handlers"
 	"net/http"
 	"os"
@@ -58,20 +59,8 @@ func (s *Server) ContentTypeJsonMiddleware(next http.Handler) http.Handler {
 
 func (s *Server) LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprintln(os.Stderr, "starting")
 		next = handlers.LoggingHandler(os.Stderr, next)
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (s *Server) CORSMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Enable CORS for testing purposes. This should be
-		// configured properly for production
-		allOrigins := handlers.AllowedOrigins([]string{"ruizandr.es,localhost"})
-		allMethods := handlers.AllowedMethods([]string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"})
-		allHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
-
-		next = handlers.CORS(allOrigins, allMethods, allHeaders)(next)
 		next.ServeHTTP(w, r)
 	})
 }

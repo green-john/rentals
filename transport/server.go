@@ -3,6 +3,7 @@ package transport
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"log"
@@ -33,7 +34,7 @@ type Server struct {
 // Creates an http server and serves it in the specified address
 func (s *Server) ServeHTTP(addr string) error {
 	srv := &http.Server{
-		Handler:      s.router,
+		Handler:      setCors(s.router),
 		Addr:         addr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
@@ -296,9 +297,6 @@ func NewServer(db *gorm.DB, authNService services.AuthnService, authZService *se
 	// Add content-type=application/json middleware
 	router.Use(s.ContentTypeJsonMiddleware)
 
-	// Add CORS middleware
-	router.Use(s.CORSMiddleware)
-
 	// Log all things
 	router.Use(s.LoggingMiddleware)
 
@@ -306,4 +304,11 @@ func NewServer(db *gorm.DB, authNService services.AuthnService, authZService *se
 	s.setupAuthorization()
 
 	return s, nil
+}
+
+func setCors(router *mux.Router) http.Handler {
+	allOrigins := handlers.AllowedOrigins([]string{"*"})
+	allMethods := handlers.AllowedMethods([]string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"})
+	allHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
+	return handlers.CORS(allOrigins, allMethods, allHeaders)(router)
 }
