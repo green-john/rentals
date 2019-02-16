@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import Vuetify from 'vuetify'
 import VueRouter from 'vue-router'
 import $auth from "./components/auth";
 import App from './components/App';
@@ -6,14 +7,14 @@ import Login from './components/Login';
 import NewAccount from './components/NewAccount';
 import Dashboard from './components/Dashboard';
 import * as VueGoogleMaps from 'vue2-google-maps';
-import VModal from 'vue-js-modal';
 
+Vue.use(Vuetify);
 Vue.use(VueRouter);
 Vue.use(VueGoogleMaps, {
-    load: { key: 'AIzaSyDf43lPdwlF98RCBsJOFNKOkoEjkwxb5Sc'
+    load: {
+        key: 'AIzaSyDf43lPdwlF98RCBsJOFNKOkoEjkwxb5Sc'
     }
 });
-Vue.use(VModal);
 
 function requireAuth(to, from, next) {
     if (!$auth.isLoggedIn()) {

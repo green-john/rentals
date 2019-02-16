@@ -29,6 +29,7 @@ export default {
     },
 
     newApartment(apartmentData) {
+        console.log(apartmentData);
         return $http.post('/apartments', apartmentData, {
             headers: {Authorization: $auth.getToken()}
         }).then(response => {
