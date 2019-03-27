@@ -1,7 +1,6 @@
-package services
+package postgres
 
 import (
-	"errors"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"net/url"
@@ -10,88 +9,32 @@ import (
 	"strconv"
 )
 
-var NotFoundError = errors.New("entity not found")
-
-type ApartmentCreateInput struct {
-	rentals.Apartment
-}
-
-type ApartmentCreateOutput struct {
-	rentals.Apartment
-}
-
-type ApartmentReadInput struct {
-	// ID to lookup the apartment
-	Id string
-}
-
-type ApartmentReadOutput struct {
-	rentals.Apartment
-}
-
-type ApartmentFindInput struct {
-	Query string
-}
-
-type ApartmentFindOutput struct {
-	Apartments []rentals.Apartment
-}
-
-func (o *ApartmentFindOutput) Public() interface{} {
-	return o.Apartments
-}
-
-type ApartmentUpdateInput struct {
-	Id   string
-	Data map[string]interface{}
-}
-
-type ApartmentUpdateOutput struct {
-	rentals.Apartment
-}
-
-type ApartmentDeleteInput struct {
-	Id string
-}
-
-type ApartmentDeleteOutput struct {
-	Message string
-}
-
 var JsonTagsToFilter = map[string]string{
 	"floor_area_meters":   getJsonTag(rentals.Apartment{}, "FloorAreaMeters"),
 	"price_per_month_usd": getJsonTag(rentals.Apartment{}, "PricePerMonthUsd"),
 	"room_count":          getJsonTag(rentals.Apartment{}, "RoomCount"),
 }
 
-type ApartmentService interface {
-	Create(ApartmentCreateInput) (*ApartmentCreateOutput, error)
-	Read(ApartmentReadInput) (*ApartmentReadOutput, error)
-	Find(ApartmentFindInput) (*ApartmentFindOutput, error)
-	Update(ApartmentUpdateInput) (*ApartmentUpdateOutput, error)
-	Delete(ApartmentDeleteInput) (*ApartmentDeleteOutput, error)
-}
-
 type dbApartmentService struct {
 	Db *gorm.DB
 }
 
-func (ar *dbApartmentService) Create(in ApartmentCreateInput) (*ApartmentCreateOutput, error) {
+func (ar *dbApartmentService) Create(in rentals.ApartmentCreateInput) (*rentals.ApartmentCreateOutput, error) {
 	ar.Db.Create(&(in.Apartment))
 
-	return &ApartmentCreateOutput{Apartment: in.Apartment}, nil
+	return &rentals.ApartmentCreateOutput{Apartment: in.Apartment}, nil
 }
 
-func (ar *dbApartmentService) Read(in ApartmentReadInput) (*ApartmentReadOutput, error) {
+func (ar *dbApartmentService) Read(in rentals.ApartmentReadInput) (*rentals.ApartmentReadOutput, error) {
 	apartment, err := getApartment(in.Id, ar.Db)
 	if err != nil {
 		return nil, err
 	}
 
-	return &ApartmentReadOutput{Apartment: *apartment}, nil
+	return &rentals.ApartmentReadOutput{Apartment: *apartment}, nil
 }
 
-func (ar *dbApartmentService) Find(input ApartmentFindInput) (*ApartmentFindOutput, error) {
+func (ar *dbApartmentService) Find(input rentals.ApartmentFindInput) (*rentals.ApartmentFindOutput, error) {
 	values, err := url.ParseQuery(input.Query)
 	if err != nil {
 		return nil, err
@@ -111,10 +54,10 @@ func (ar *dbApartmentService) Find(input ApartmentFindInput) (*ApartmentFindOutp
 
 	var apartments []rentals.Apartment
 	tx.Find(&apartments)
-	return &ApartmentFindOutput{Apartments: apartments}, nil
+	return &rentals.ApartmentFindOutput{Apartments: apartments}, nil
 }
 
-func (ar *dbApartmentService) Update(input ApartmentUpdateInput) (*ApartmentUpdateOutput, error) {
+func (ar *dbApartmentService) Update(input rentals.ApartmentUpdateInput) (*rentals.ApartmentUpdateOutput, error) {
 	apartment, err := getApartment(input.Id, ar.Db)
 	if err != nil {
 		return nil, err
@@ -128,17 +71,17 @@ func (ar *dbApartmentService) Update(input ApartmentUpdateInput) (*ApartmentUpda
 	if err = ar.Db.Save(&apartment).Error; err != nil {
 		return nil, err
 	}
-	return &ApartmentUpdateOutput{Apartment: *apartment}, nil
+	return &rentals.ApartmentUpdateOutput{Apartment: *apartment}, nil
 }
 
-func (ar *dbApartmentService) Delete(input ApartmentDeleteInput) (*ApartmentDeleteOutput, error) {
+func (ar *dbApartmentService) Delete(input rentals.ApartmentDeleteInput) (*rentals.ApartmentDeleteOutput, error) {
 	apartment, err := getApartment(input.Id, ar.Db)
 	if err != nil {
 		return nil, err
 	}
 
 	ar.Db.Delete(&apartment)
-	return &ApartmentDeleteOutput{Message: "success"}, nil
+	return &rentals.ApartmentDeleteOutput{Message: "success"}, nil
 }
 
 func getApartment(id string, db *gorm.DB) (*rentals.Apartment, error) {
@@ -150,7 +93,7 @@ func getApartment(id string, db *gorm.DB) (*rentals.Apartment, error) {
 	var apartment rentals.Apartment
 	if err = db.First(&apartment, intId).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, NotFoundError
+			return nil, rentals.NotFoundError
 		}
 		return nil, err
 	}

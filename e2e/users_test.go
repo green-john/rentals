@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"rentals"
-	"rentals/services"
+	"rentals/postgres"
 	"rentals/tst"
 	"sync"
 	"testing"
@@ -271,9 +271,9 @@ func assertUser(t *testing.T, user *rentals.User, username, role string, ) {
 
 // Creates a user. Returns its id.
 func createUser(username, pwd, role string, db *gorm.DB) (uint, error) {
-	userService := services.NewDbUserService(db)
+	userService := postgres.NewDbUserService(db)
 
-	result, err := userService.Create(services.UserCreateInput{
+	result, err := userService.Create(rentals.UserCreateInput{
 		Username: username,
 		Password: pwd,
 		Role:     role,

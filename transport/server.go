@@ -9,7 +9,7 @@ import (
 	"log"
 	"net/http"
 	"rentals"
-	"rentals/services"
+	"rentals/auth"
 	"time"
 )
 
@@ -25,10 +25,10 @@ type Public interface {
 type Server struct {
 	Db               *gorm.DB
 	router           *mux.Router
-	authn            services.AuthnService
-	authz            *services.AuthzService
-	apartmentService services.ApartmentService
-	userService      services.UserService
+	authn            auth.AuthnService
+	authz            *auth.AuthzService
+	apartmentService rentals.ApartmentService
+	userService      rentals.UserService
 }
 
 // Creates an http server and serves it in the specified address
@@ -45,12 +45,12 @@ func (s *Server) ServeHTTP(addr string) error {
 
 func (s *Server) setupAuthorization() {
 	s.authz.AddPermission("admin", "users",
-		services.Create, services.Read, services.Update, services.Delete)
+		auth.Create, auth.Read, auth.Update, auth.Delete)
 	s.authz.AddPermission("admin", "apartments",
-		services.Create, services.Read, services.Update, services.Delete)
+		auth.Create, auth.Read, auth.Update, auth.Delete)
 	s.authz.AddPermission("realtor", "apartments",
-		services.Create, services.Read, services.Update, services.Delete)
-	s.authz.AddPermission("client", "apartments", services.Read)
+		auth.Create, auth.Read, auth.Update, auth.Delete)
+	s.authz.AddPermission("client", "apartments", auth.Read)
 }
 
 // Creates GET, POST, PATH and DELETE user handlers.
@@ -77,10 +77,10 @@ func (s *Server) AddUsersHandlers(basePath string) {
 	s.router.HandleFunc(urlWithId, deleteUsersHandler(s.userService)).Methods("DELETE")
 }
 
-func getUsersHandler(service services.UserService) func(http.ResponseWriter, *http.Request) {
+func getUsersHandler(service rentals.UserService) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		var input services.UserReadInput
+		var input rentals.UserReadInput
 
 		input.Id = vars["id"]
 		result, err := service.Read(input)
@@ -93,9 +93,9 @@ func getUsersHandler(service services.UserService) func(http.ResponseWriter, *ht
 	}
 }
 
-func getAllUsersHandler(service services.UserService) func(http.ResponseWriter, *http.Request) {
+func getAllUsersHandler(service rentals.UserService) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var input services.UserAllInput
+		var input rentals.UserAllInput
 
 		result, err := service.All(input)
 		if err != nil {
@@ -107,10 +107,10 @@ func getAllUsersHandler(service services.UserService) func(http.ResponseWriter, 
 	}
 }
 
-func postUsersHandler(service services.UserService) func(http.ResponseWriter, *http.Request) {
+func postUsersHandler(service rentals.UserService) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
-		var newUser services.UserCreateInput
+		var newUser rentals.UserCreateInput
 		if err := json.NewDecoder(r.Body).Decode(&newUser); err != nil {
 			respond(w, http.StatusBadRequest, err.Error())
 			return
@@ -126,12 +126,12 @@ func postUsersHandler(service services.UserService) func(http.ResponseWriter, *h
 	}
 }
 
-func patchUsersHandler(service services.UserService) func(w http.ResponseWriter, r *http.Request) {
+func patchUsersHandler(service rentals.UserService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		defer r.Body.Close()
 
-		var updateInput services.UserUpdateInput
+		var updateInput rentals.UserUpdateInput
 
 		if err := json.NewDecoder(r.Body).Decode(&updateInput); err != nil {
 			respond(w, http.StatusBadRequest, err.Error())
@@ -150,11 +150,11 @@ func patchUsersHandler(service services.UserService) func(w http.ResponseWriter,
 	}
 }
 
-func deleteUsersHandler(service services.UserService) func(w http.ResponseWriter, r *http.Request) {
+func deleteUsersHandler(service rentals.UserService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
-		var deleteIn services.UserDeleteInput
+		var deleteIn rentals.UserDeleteInput
 		deleteIn.Id = vars["id"]
 
 		_, err := service.Delete(deleteIn)
@@ -167,10 +167,10 @@ func deleteUsersHandler(service services.UserService) func(w http.ResponseWriter
 	}
 }
 
-func getApartmentsHandler(srv services.ApartmentService) func(w http.ResponseWriter, r *http.Request) {
+func getApartmentsHandler(srv rentals.ApartmentService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		var input services.ApartmentReadInput
+		var input rentals.ApartmentReadInput
 		input.Id = vars["id"]
 
 		result, err := srv.Read(input)
@@ -183,9 +183,9 @@ func getApartmentsHandler(srv services.ApartmentService) func(w http.ResponseWri
 	}
 }
 
-func getAllApartmentsHandler(srv services.ApartmentService) func(w http.ResponseWriter, r *http.Request) {
+func getAllApartmentsHandler(srv rentals.ApartmentService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var input services.ApartmentFindInput
+		var input rentals.ApartmentFindInput
 		input.Query = r.URL.RawQuery
 
 		result, err := srv.Find(input)
@@ -198,7 +198,7 @@ func getAllApartmentsHandler(srv services.ApartmentService) func(w http.Response
 	}
 }
 
-func postApartmentsHandler(srv services.ApartmentService) func(w http.ResponseWriter, r *http.Request) {
+func postApartmentsHandler(srv rentals.ApartmentService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 		var newApartment rentals.Apartment
@@ -207,7 +207,7 @@ func postApartmentsHandler(srv services.ApartmentService) func(w http.ResponseWr
 			return
 		}
 
-		result, err := srv.Create(services.ApartmentCreateInput{Apartment: newApartment})
+		result, err := srv.Create(rentals.ApartmentCreateInput{Apartment: newApartment})
 		if err != nil {
 			badRequestError(err, w)
 			return
@@ -217,12 +217,12 @@ func postApartmentsHandler(srv services.ApartmentService) func(w http.ResponseWr
 	}
 }
 
-func patchApartmentsHandler(srv services.ApartmentService) func(w http.ResponseWriter, r *http.Request) {
+func patchApartmentsHandler(srv rentals.ApartmentService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		defer r.Body.Close()
 
-		var updateInput services.ApartmentUpdateInput
+		var updateInput rentals.ApartmentUpdateInput
 
 		if err := json.NewDecoder(r.Body).Decode(&updateInput.Data); err != nil {
 			respond(w, http.StatusBadRequest, err.Error())
@@ -241,9 +241,9 @@ func patchApartmentsHandler(srv services.ApartmentService) func(w http.ResponseW
 	}
 }
 
-func deleteApartmentsHandler(srv services.ApartmentService) func(w http.ResponseWriter, r *http.Request) {
+func deleteApartmentsHandler(srv rentals.ApartmentService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var deleteIn services.ApartmentDeleteInput
+		var deleteIn rentals.ApartmentDeleteInput
 
 		vars := mux.Vars(r)
 		deleteIn.Id = vars["id"]
@@ -260,15 +260,15 @@ func deleteApartmentsHandler(srv services.ApartmentService) func(w http.Response
 func badRequestError(err error, w http.ResponseWriter) {
 	log.Printf("[ERROR] %s", err.Error())
 	switch err {
-	case services.NotFoundError:
+	case rentals.NotFoundError:
 		respond(w, http.StatusNotFound, err.Error())
 	default:
 		respond(w, http.StatusBadRequest, err.Error())
 	}
 }
 
-func NewServer(db *gorm.DB, authNService services.AuthnService, authZService *services.AuthzService,
-	apartmentsService services.ApartmentService, userService services.UserService) (*Server, error) {
+func NewServer(db *gorm.DB, authNService auth.AuthnService, authZService *auth.AuthzService,
+	apartmentsService rentals.ApartmentService, userService rentals.UserService) (*Server, error) {
 	router := mux.NewRouter()
 
 	s := &Server{

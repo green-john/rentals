@@ -5,7 +5,7 @@ import (
 	"github.com/gorilla/handlers"
 	"net/http"
 	"os"
-	"rentals/services"
+	"rentals/auth"
 	"strings"
 )
 
@@ -65,12 +65,12 @@ func (s *Server) LoggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func getOp(method string) services.Permission {
-	meth2Perm := make(map[string]services.Permission)
-	meth2Perm["POST"] = services.Create
-	meth2Perm["GET"] = services.Read
-	meth2Perm["PATCH"] = services.Update
-	meth2Perm["DELETE"] = services.Delete
+func getOp(method string) auth.Permission {
+	meth2Perm := make(map[string]auth.Permission)
+	meth2Perm["POST"] = auth.Create
+	meth2Perm["GET"] = auth.Read
+	meth2Perm["PATCH"] = auth.Update
+	meth2Perm["DELETE"] = auth.Delete
 
 	return meth2Perm[strings.ToUpper(method)]
 }

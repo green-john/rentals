@@ -1,4 +1,4 @@
-package services
+package postgres
 
 import (
 	"errors"
@@ -9,93 +9,38 @@ import (
 	"strconv"
 )
 
-type UserCreateInput struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Role     string `json:"role"`
-}
-
-type UserCreateOutput struct {
-	rentals.User
-}
-
-type UserReadInput struct {
-	// ID to lookup the apartment
-	Id string
-}
-
-type UserReadOutput struct {
-	rentals.User
-}
-
-type UserAllInput struct {
-}
-
-type UserAllOutput struct {
-	Users []rentals.User
-}
-
-func (o *UserAllOutput) Public() interface{} {
-	return o.Users
-}
-
-type UserUpdateInput struct {
-	Id       string `json:"-"`
-	Password string `json:"password"`
-	Role     string `json:"role"`
-}
-
-type UserUpdateOutput struct {
-	rentals.User
-}
-
-type UserDeleteInput struct {
-	Id string
-}
-
-type UserDeleteOutput struct {
-	Message string `json:"message"`
-}
-
-type UserService interface {
-	Create(UserCreateInput) (*UserCreateOutput, error)
-	Read(UserReadInput) (*UserReadOutput, error)
-	All(UserAllInput) (*UserAllOutput, error)
-	Update(UserUpdateInput) (*UserUpdateOutput, error)
-	Delete(UserDeleteInput) (*UserDeleteOutput, error)
-}
 
 type dbUserService struct {
 	Db *gorm.DB
 }
 
-func (s *dbUserService) Create(input UserCreateInput) (*UserCreateOutput, error) {
+func (s *dbUserService) Create(input rentals.UserCreateInput) (*rentals.UserCreateOutput, error) {
 	user, err := createUser(input.Username, input.Password, input.Role, s.Db)
 	if err != nil {
 		return nil, err
 	}
-	return &UserCreateOutput{User: *user}, nil
+	return &rentals.UserCreateOutput{User: *user}, nil
 }
 
-func (s *dbUserService) All(UserAllInput) (*UserAllOutput, error) {
+func (s *dbUserService) All(rentals.UserAllInput) (*rentals.UserAllOutput, error) {
 	var users []rentals.User
 	if err := s.Db.Find(&users).Error; err != nil {
 		return nil, err
 	}
 
-	return &UserAllOutput{Users: users}, nil
+	return &rentals.UserAllOutput{Users: users}, nil
 }
 
-func (s *dbUserService) Read(input UserReadInput) (*UserReadOutput, error) {
+func (s *dbUserService) Read(input rentals.UserReadInput) (*rentals.UserReadOutput, error) {
 	user, err := getUser(input.Id, s.Db)
 	if err != nil {
 		return nil, err
 	}
 
-	return &UserReadOutput{User: *user}, nil
+	return &rentals.UserReadOutput{User: *user}, nil
 }
 
-func (s *dbUserService) Update(input UserUpdateInput) (*UserUpdateOutput, error) {
+func (s *dbUserService) Update(input rentals.UserUpdateInput) (*rentals.UserUpdateOutput, error) {
 	user, err := getUser(input.Id, s.Db)
 	if err != nil {
 		return nil, err
@@ -117,10 +62,10 @@ func (s *dbUserService) Update(input UserUpdateInput) (*UserUpdateOutput, error)
 		return nil, fmt.Errorf("[dbUserService.Update] error updating %v", err)
 	}
 
-	return &UserUpdateOutput{User: *user}, nil
+	return &rentals.UserUpdateOutput{User: *user}, nil
 }
 
-func (s *dbUserService) Delete(input UserDeleteInput) (*UserDeleteOutput, error) {
+func (s *dbUserService) Delete(input rentals.UserDeleteInput) (*rentals.UserDeleteOutput, error) {
 	user, err := getUser(input.Id, s.Db)
 	if err != nil {
 		return nil, err
@@ -130,7 +75,7 @@ func (s *dbUserService) Delete(input UserDeleteInput) (*UserDeleteOutput, error)
 		return nil, err
 	}
 
-	return &UserDeleteOutput{}, nil
+	return &rentals.UserDeleteOutput{}, nil
 }
 
 func NewDbUserService(db *gorm.DB) *dbUserService {
@@ -147,7 +92,7 @@ func getUser(id string, db *gorm.DB) (*rentals.User, error) {
 
 	if err = db.First(&user, intId).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, NotFoundError
+			return nil, rentals.NotFoundError
 		}
 		return nil, err
 	}

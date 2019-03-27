@@ -1,4 +1,4 @@
-package services
+package postgres
 
 import (
 	"fmt"
@@ -34,7 +34,7 @@ func TestFindApartment(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("%s -> %v", elt.query, elt.resultIds), func(t *testing.T) {
 			// Act
-			res, err := aptResource.Find(ApartmentFindInput{Query: elt.query})
+			res, err := aptResource.Find(rentals.ApartmentFindInput{Query: elt.query})
 			tst.Ok(t, err)
 
 			//err = json.Unmarshal(res, &retApts)
@@ -71,8 +71,9 @@ func createApartments(t *testing.T, s *dbApartmentService) {
 	}
 }
 
-func newApartmentPayload(name, desc string, area, price float32, roomCount int, realtorId uint) ApartmentCreateInput {
-	return ApartmentCreateInput{
+func newApartmentPayload(name, desc string, area, price float32, roomCount int,
+	realtorId uint) rentals.ApartmentCreateInput {
+	return rentals.ApartmentCreateInput{
 		Apartment: rentals.Apartment{
 			Name:             name,
 			Desc:             desc,
@@ -90,7 +91,7 @@ func newApartmentPayload(name, desc string, area, price float32, roomCount int, 
 func createRealtor(t *testing.T, db *gorm.DB) {
 	usrService := NewDbUserService(db)
 
-	_, err := usrService.Create(UserCreateInput{
+	_, err := usrService.Create(rentals.UserCreateInput{
 		Username: "user",
 		Password: "pass",
 		Role:     "realtor",

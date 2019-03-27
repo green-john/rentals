@@ -6,7 +6,8 @@ import (
 	"log"
 	"os"
 	"rentals"
-	"rentals/services"
+	"rentals/auth"
+	"rentals/postgres"
 	"rentals/transport"
 	"strconv"
 )
@@ -28,10 +29,10 @@ func runServer(testing bool, port int) {
 
 	db.AutoMigrate(rentals.DbModels...)
 
-	authN := services.NewDbAuthnService(db)
-	authZ := services.NewAuthzService()
-	apartmentsSrv := services.NewDbApartmentService(db)
-	userService := services.NewDbUserService(db)
+	authN := auth.NewDbAuthnService(db)
+	authZ := auth.NewAuthzService()
+	apartmentsSrv := postgres.NewDbApartmentService(db)
+	userService := postgres.NewDbUserService(db)
 
 	srv, err := transport.NewServer(db, authN, authZ, apartmentsSrv, userService)
 	if err != nil {

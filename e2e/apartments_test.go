@@ -8,7 +8,8 @@ import (
 	"log"
 	"net/http"
 	"rentals"
-	"rentals/services"
+	"rentals/auth"
+	"rentals/postgres"
 	"rentals/transport"
 	"rentals/tst"
 	"sync"
@@ -35,10 +36,10 @@ func newServer(t *testing.T) (*transport.Server, func()) {
 	tst.Ok(t, err)
 	db.AutoMigrate(rentals.DbModels...)
 
-	authN := services.NewDbAuthnService(db)
-	authZ := services.NewAuthzService()
-	apatService := services.NewDbApartmentService(db)
-	usrService := services.NewDbUserService(db)
+	authN := auth.NewDbAuthnService(db)
+	authZ := auth.NewAuthzService()
+	apatService := postgres.NewDbApartmentService(db)
+	usrService := postgres.NewDbUserService(db)
 
 	srv, err := transport.NewServer(db, authN, authZ, apatService, usrService)
 	tst.Ok(t, err)
@@ -294,10 +295,10 @@ func create10Apartments(t *testing.T, realtorId uint, db *gorm.DB) {
 }
 
 func createApartment(name, desc string, roomCount int, realtorId uint, db *gorm.DB) (uint, error) {
-	apartmentResource := services.NewDbApartmentService(db)
+	apartmentResource := postgres.NewDbApartmentService(db)
 
 	output, err := apartmentResource.Create(
-		services.ApartmentCreateInput{
+		rentals.ApartmentCreateInput{
 			Apartment: rentals.Apartment{
 				Name:             name,
 				Desc:             desc,

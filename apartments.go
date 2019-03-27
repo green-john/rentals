@@ -5,40 +5,6 @@ import (
 	"time"
 )
 
-var DbModels = []interface{}{
-	&User{},
-	&UserSession{},
-	&Apartment{},
-}
-
-type uid uint
-
-type User struct {
-	// Primary key
-	ID uid `gorm:"primary_key" json:"id"`
-
-	// Username
-	Username string `gorm:"unique" json:"username"`
-
-	// Password hash. Not included in json responses
-	PasswordHash string `json:"-"`
-
-	// Role
-	Role string `json:"role"`
-}
-
-type UserSession struct {
-	// Primary key
-	ID uint `gorm:"primary_key"`
-
-	// Generated token
-	Token string
-
-	// User associated to this session
-	UserID uint
-	User   User
-}
-
 type Apartment struct {
 	// Primary key
 	ID uid `gorm:"primary_key" json:"id"`
@@ -74,7 +40,6 @@ type Apartment struct {
 	// Availability of the apartment
 	Available bool `json:"available"`
 }
-
 
 func (uid) UnmarshalJSON([]byte) error {
 	return nil
@@ -115,3 +80,56 @@ func (s *Apartment) Validate() error {
 	return errors.New("\n" + allErrors)
 }
 
+type ApartmentService interface {
+	Create(ApartmentCreateInput) (*ApartmentCreateOutput, error)
+	Read(ApartmentReadInput) (*ApartmentReadOutput, error)
+	Find(ApartmentFindInput) (*ApartmentFindOutput, error)
+	Update(ApartmentUpdateInput) (*ApartmentUpdateOutput, error)
+	Delete(ApartmentDeleteInput) (*ApartmentDeleteOutput, error)
+}
+
+type ApartmentCreateInput struct {
+	Apartment
+}
+
+type ApartmentCreateOutput struct {
+	Apartment
+}
+
+type ApartmentReadInput struct {
+	// ID to lookup the apartment
+	Id string
+}
+
+type ApartmentReadOutput struct {
+	Apartment
+}
+
+type ApartmentFindInput struct {
+	Query string
+}
+
+type ApartmentFindOutput struct {
+	Apartments []Apartment
+}
+
+func (o *ApartmentFindOutput) Public() interface{} {
+	return o.Apartments
+}
+
+type ApartmentUpdateInput struct {
+	Id   string
+	Data map[string]interface{}
+}
+
+type ApartmentUpdateOutput struct {
+	Apartment
+}
+
+type ApartmentDeleteInput struct {
+	Id string
+}
+
+type ApartmentDeleteOutput struct {
+	Message string
+}
