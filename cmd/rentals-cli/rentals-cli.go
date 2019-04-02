@@ -22,7 +22,7 @@ func main() {
 }
 
 func runServer(testing bool, port int) {
-	db, err := rentals.ConnectToDB(testing)
+	db, err := postgres.ConnectToDB(testing)
 	if err != nil {
 		log.Fatal(err)
 	}

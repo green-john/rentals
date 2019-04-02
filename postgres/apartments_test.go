@@ -10,7 +10,7 @@ import (
 
 func TestFindApartment(t *testing.T) {
 	// Arrange
-	db, err := rentals.ConnectToDB(true)
+	db, err := ConnectToDB(true)
 	tst.Ok(t, err)
 
 	db.AutoMigrate(rentals.DbModels...)

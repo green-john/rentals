@@ -32,7 +32,7 @@ type apartmentResponse struct {
 func newServer(t *testing.T) (*transport.Server, func()) {
 	t.Helper()
 
-	db, err := rentals.ConnectToDB(true)
+	db, err := postgres.ConnectToDB(true)
 	tst.Ok(t, err)
 	db.AutoMigrate(rentals.DbModels...)
 
