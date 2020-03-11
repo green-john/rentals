@@ -1,0 +1,42 @@
+name: Go
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  test:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go 1.11
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.11
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: go build ./...
+      
+    - name: Setup PostgreSQL With Init Scripts
+      uses: m4nu56/postgresql-action@1.0
+      with:
+        postgresql db: 'rentals-dev'
+        postgresql user: 'juan'
+        postgresql password: 'root'
+
+    - name: Test
+      run: go test ./...
+      env:
+        RENTALS_TESTING: true
+        RENTALS_DB_NAME: rentals-dev
+        RENTALS_DB_USER: juan
+        RENTALS_DB_HOST: localhost
+        RENTALS_DB_PASSWORD: root
